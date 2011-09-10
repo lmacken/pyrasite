@@ -18,7 +18,7 @@
 pyrasite
 ========
 
-Injects code into a running python process
+Inject code into a running python process.
 
     http://pyrasite.fedorahosted.org
 
@@ -40,7 +40,7 @@ class CodeInjector(object):
     def inject(self):
         gdb_cmds = [
             'PyGILState_Ensure()',
-            # Allow payloads to import modules along-side them
+            # Allow payloads to import modules alongside them
             'PyRun_SimpleString("import sys; sys.path.insert(0, \\"%s\\");")' %
                 os.path.dirname(self.filename),
             'PyRun_SimpleString("execfile(\\"%s\\")")' % self.filename,

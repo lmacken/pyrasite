@@ -25,6 +25,19 @@ This payload is used by the test suite, which can be run by doing:
     python setup.py test
 
 
+Viewing the largest objects in your process
+-------------------------------------------
+
+::
+
+    $ pyrasite <PID> payloads/dump_memory.py
+    $ python tools/memory-viewer <PID> objects.json
+
+Note that the `objects.json` file will be in the current working directory of
+the running process.
+
+.. image:: http://lewk.org/img/pyrasite-memory-viewer.png
+
 Reverse Python Shell
 --------------------
 

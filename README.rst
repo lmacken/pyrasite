@@ -85,4 +85,5 @@ Authors
 ~~~~~~~
 
 Luke Macken <lmacken@redhat.com>
+
 David Malcolm <dmalcolm@redhat.com>

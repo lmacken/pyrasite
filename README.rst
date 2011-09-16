@@ -71,11 +71,18 @@ Reverse Shell
     % ls
 
 
-Dumping memory, modules, stacks
--------------------------------
+Dumping modules, thread stacks, and forcing garbage collection
+--------------------------------------------------------------
 
 ::
 
-    payloads/dump_memory.py
     payloads/dump_modules.py
     payloads/dump_stacks.py
+    payloads/force_garbage_collection.py
+
+
+Authors
+~~~~~~~
+
+Luke Macken <lmacken@redhat.com>
+David Malcolm <dmalcolm@redhat.com>

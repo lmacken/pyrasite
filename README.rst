@@ -32,7 +32,7 @@ API
 This pyrasite unit test injects a `print("Hello World!")` payload into a
 process and ensures it gets printed.
 
-.. code-block:: python
+::
 
     from pyrasite.inject import CodeInjector
     

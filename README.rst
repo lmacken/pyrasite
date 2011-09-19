@@ -46,6 +46,7 @@ process and ensures it gets printed.
        stdout, stderr = p.communicate()
        assert 'Hello World!' in stdout, "Code injection failed"
 
+
 Payloads
 ~~~~~~~~
 

@@ -34,17 +34,17 @@ process and ensures it gets printed.
 
 .. code-block:: python
 
-   from pyrasite.inject import CodeInjector
-
-   def test_injection(self):
-       cmd = 'python -c "import time; time.sleep(0.5)"'
-       p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
-
-       ci = CodeInjector(p.pid, 'payloads/helloworld.py')
-       ci.inject()
-
-       stdout, stderr = p.communicate()
-       assert 'Hello World!' in stdout, "Code injection failed"
+    from pyrasite.inject import CodeInjector
+    
+    def test_injection(self):
+        cmd = 'python -c "import time; time.sleep(0.5)"'
+        p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
+    
+        ci = CodeInjector(p.pid, 'payloads/helloworld.py')
+        ci.inject()
+    
+        stdout, stderr = p.communicate()
+        assert 'Hello World!' in stdout, "Code injection failed"
 
 
 Payloads

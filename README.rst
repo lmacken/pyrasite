@@ -8,38 +8,53 @@ Requirements
 
   - gdb (https://www.gnu.org/s/gdb)
 
-Example Payloads
-~~~~~~~~~~~~~~~~
+Download
+~~~~~~~~
 
-Hello World
------------
-
-::
-
-    pyrasite <PID> payloads/helloworld.py
-
-This payload is used by the test suite, which can be run by doing:
+Download the latest stable release from PyPi: http://pypi.python.org/pypi/pyrasite
 
 ::
 
-    python setup.py test
+    easy_install pyrasite
 
-
-Viewing the largest objects in your process
--------------------------------------------
+Grab the latest source by running:
 
 ::
 
-    $ pyrasite <PID> payloads/dump_memory.py
-    $ python tools/memory-viewer <PID> objects.json
+    git clone git://git.fedorahosted.org/git/pyrasite
 
-Note that the `objects.json` file will be in the current working directory of
-the running process.
+You can also fork pyrasite on GitHub: http://github.com/lmacken/pyrasite
 
-.. image:: http://lewk.org/img/pyrasite-memory-viewer.png
+
+API
+~~~
+
+This pyrasite unit test injects a `print("Hello World!")` payload into a
+process and ensures it gets printed.
+
+.. code-block:: python
+
+    from pyrasite.inject import CodeInjector
+
+    def test_injection(self):
+        cmd = 'python -c "import time; time.sleep(0.5)"'
+        p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
+
+        ci = CodeInjector(p.pid, 'payloads/helloworld.py')
+        ci.inject()
+
+        stdout, stderr = p.communicate()
+        assert 'Hello World!' in stdout, "Code injection failed"
+
+
+Payloads
+~~~~~~~~
 
 Reverse Python Shell
 --------------------
+
+This lets you easily introspect or alter any objects in your running process.
+
 
 ::
 
@@ -55,12 +70,32 @@ Reverse Python Shell
     Type 'quit' to exit.
     >>> print x
     foo
-    
     >>> globals()['x'] = 'bar'
 
 
+Viewing the largest objects in your process
+-------------------------------------------
+
+This payload uses `meliae <https://launchpad.net/meliae>`_ to dump all of the objects in your process to an `objects.json` file (currently dumped in the working directory of your process).
+
+::
+
+    $ pyrasite <PID> payloads/dump_memory.py
+
+
+Pyrasite also provides a tool to view the values of largest objects in your process.
+
+
+::
+
+    $ python tools/memory-viewer.py <PID> objects.json
+
+
+.. image:: http://lewk.org/img/pyrasite-memory-viewer.png
+
+
 Reverse Shell
---------------
+-------------
 
 ::
 
@@ -69,7 +104,6 @@ Reverse Shell
     Linux tomservo 2.6.40.3-0.fc15.x86_64 #1 SMP Tue Aug 16 04:10:59 UTC 2011 x86_64 x86_64 x86_64 GNU/Linux
     Type 'quit' to exit.
     % ls
-
 
 Dumping modules, thread stacks, and forcing garbage collection
 --------------------------------------------------------------
@@ -80,6 +114,10 @@ Dumping modules, thread stacks, and forcing garbage collection
     payloads/dump_stacks.py
     payloads/force_garbage_collection.py
 
+Mailing List
+~~~~~~~~~~~~
+
+https://fedorahosted.org/mailman/listinfo/pyrasite
 
 Authors
 ~~~~~~~

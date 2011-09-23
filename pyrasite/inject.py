@@ -30,12 +30,14 @@ Authors:
 
 import os, subprocess
 
+
 class CodeInjector(object):
 
-    def __init__(self, pid, filename, verbose=False):
+    def __init__(self, pid, filename, verbose=False, gdb_prefix=""):
         self.pid = pid
         self.filename = os.path.abspath(filename)
         self.verbose = verbose
+        self.gdb_prefix = gdb_prefix
 
     def inject(self):
         gdb_cmds = [
@@ -46,7 +48,7 @@ class CodeInjector(object):
             'PyRun_SimpleString("execfile(\\"%s\\")")' % self.filename,
             'PyGILState_Release($1)',
             ]
-        self._run('gdb -p %d -batch %s' % (self.pid,
+        self._run('%sgdb -p %d -batch %s' % (self.gdb_prefix, self.pid,
             ' '.join(["-eval-command='call %s'" % cmd for cmd in gdb_cmds])))
 
     def _run(self, cmd):

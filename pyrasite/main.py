@@ -16,28 +16,42 @@
 # Copyright (C) 2011 Red Hat, Inc.
 
 import os, sys
+import argparse
 
 from inject import CodeInjector
 
 def main():
-    if len(sys.argv) < 3:
-        print("Usage: %s <pid> <filename>" % sys.argv[0])
-        print("\n         pid:\tThe ID of the process to inject code into")
-        print("    filename:\tThe .py file to inject into the process\n")
+    parser = argparse.ArgumentParser(
+        description='pyrasite - inject code into a running python process',
+        epilog="For updates, visit https://github.com/lmacken/pyrasite"
+        )
+    parser.add_argument('pid', help="The ID of the process to inject code into")
+    parser.add_argument('filename', default=None, nargs='?', help="The second argument must be a filename")
+    parser.add_argument('--gdb-prefix', dest='gdb_prefix', help='GDB prefix (if specified during installation)', default="")
+    parser.add_argument('--verbose', dest='verbose', help='Verbose mode', default=False, action='store_const', const=True)
+    
+    if len(sys.argv)==1:
+        parser.print_help()
         sys.exit(1)
+    
+    args = parser.parse_args()
 
     try:
-        pid = int(sys.argv[1])
+        pid = int(args.pid)
     except ValueError:
         print "Error: The first argument must be a pid"
         sys.exit(2)
-
-    filename = sys.argv[2]
-    if not os.path.exists(filename):
+        
+    filename = args.filename
+    if filename:
+        if not os.path.exists(filename):
+            print "Error: Invalid path or file doesn't exist"
+            sys.exit(3)
+    else:
         print "Error: The second argument must be a filename"
-        sys.exit(3)
+        sys.exit(4)
 
-    injector = CodeInjector(pid, filename, verbose='-v' in sys.argv)
+    injector = CodeInjector(pid, filename, verbose=args.verbose, gdb_prefix=args.gdb_prefix)
     injector.inject()
 
 if __name__ == '__main__':

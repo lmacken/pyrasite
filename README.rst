@@ -6,7 +6,7 @@ Injects code into a running Python process.
 Requirements
 ~~~~~~~~~~~~
 
-  - gdb (https://www.gnu.org/s/gdb)
+  - gdb (https://www.gnu.org/s/gdb) (version 7.3+)
 
 Download
 ~~~~~~~~
@@ -113,6 +113,20 @@ Dumping modules, thread stacks, and forcing garbage collection
     payloads/dump_modules.py
     payloads/dump_stacks.py
     payloads/force_garbage_collection.py
+    
+Additional installation notes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Mac OS X
+--------
+
+If you don't want to override Apple's default gdb, install the latest version of gdb with a prefix (e.g. gnu)
+
+::
+
+    $ ./configure --program-prefix=gnu
+    $ pyrasite <PID> payloads/reverse_python_shell.py --prefix="gnu"
+
 
 Mailing List
 ~~~~~~~~~~~~

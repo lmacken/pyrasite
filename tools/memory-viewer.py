@@ -26,11 +26,12 @@ the value of the object itself.
 __version__ = '1.0'
 
 import sys
-import subprocess
 import urwid
 import urwid.raw_display
 
 from meliae import loader
+
+from pyrasite.inspect import ObjectInspector
 
 class PyrasiteMemoryViewer(object):
     palette = [
@@ -45,7 +46,7 @@ class PyrasiteMemoryViewer(object):
         ]
 
     def __init__(self, pid, objects):
-        self.pid = pid
+        self.inspector = ObjectInspector(pid)
         self.objects = objects
         self.summary = objects.summarize()
 
@@ -65,21 +66,7 @@ class PyrasiteMemoryViewer(object):
 
     def display_object(self, w, state):
         if state:
-            cmd = [
-                'gdb --quiet -p %s -batch' % self.pid,
-                '-eval-command="print (PyObject *)%s"' % w.obj.max_address,
-            ]
-            p = subprocess.Popen(' '.join(cmd), shell=True, stdout=subprocess.PIPE,
-                                 stderr=subprocess.PIPE)
-            out, err = p.communicate()
-            if err:
-                print "Errors:", err
-
-            value = ''
-            for line in out.split('\n'):
-                if line.startswith('$1 = '):
-                    value += line[5:]
-
+            value = self.inspector.inspect(w.obj.max_address)
             self.object_output.set_text(value)
 
     def get_object_buttons(self, group=[]):

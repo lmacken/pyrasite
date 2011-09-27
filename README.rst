@@ -127,6 +127,16 @@ If you don't want to override Apple's default gdb, install the latest version of
     $ ./configure --program-prefix=gnu
     $ pyrasite <PID> payloads/reverse_python_shell.py --prefix="gnu"
 
+Ubuntu
+------
+
+Since version 10.10, Ubuntu ships with a `controversial patch <https://lkml.org/lkml/2010/6/16/421>`_ that restricts the scope of ptrace, which can be disabled by running:
+
+::
+
+    echo 0 > /proc/sys/kernel/yama/ptrace_scope
+
+
 
 Mailing List
 ~~~~~~~~~~~~

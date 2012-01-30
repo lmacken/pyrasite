@@ -88,7 +88,7 @@ Pyrasite also provides a tool to view the values of largest objects in your proc
 
 ::
 
-    $ python tools/memory-viewer.py <PID> objects.json
+    $ pyrasite-memory-viewer <PID> objects.json
 
 
 .. image:: http://lewk.org/img/pyrasite-memory-viewer.png

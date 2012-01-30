@@ -105,6 +105,22 @@ Reverse Shell
     Type 'quit' to exit.
     % ls
 
+
+Call Graph
+----------
+
+Pyrasite comes with a payload that generates an image of your processes call
+graph using `pycallgraph <http://pycallgraph.slowchop.com>`_.
+
+::
+
+    $ pyrasite <PID> payloads/start_callgraph.py
+    $ pyrasite <PID> payloads/stop_callgraph.py
+
+The callgraph is then generated using `graphviz <http://www.graphviz.org>`_ and
+saved to `callgraph.png`. You can see an example callgraph `here <http://pycallgraph.slowchop.com/pycallgraph/wiki/RegExpExample>`_.
+
+
 Dumping modules, thread stacks, and forcing garbage collection
 --------------------------------------------------------------
 

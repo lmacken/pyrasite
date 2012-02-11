@@ -28,18 +28,23 @@ Authors:
     David Malcolm <dmalcolm@redhat.com>
 """
 
-import os, subprocess
-
+import os, subprocess, warnings
 
 class CodeInjector(object):
 
-    def __init__(self, pid, filename, verbose=False, gdb_prefix=""):
+    def __init__(self, pid, filename=None, verbose=False, gdb_prefix=""):
         self.pid = pid
-        self.filename = os.path.abspath(filename)
         self.verbose = verbose
         self.gdb_prefix = gdb_prefix
+        if filename:
+            warnings.warn('Passing the payload in via the constructor is '
+                          'deprecated. Please pass it to the "inject" method '
+                          'instead.')
+            self.filename = os.path.abspath(filename)
 
-    def inject(self):
+    def inject(self, filename=None):
+        if filename:
+            self.filename = os.path.abspath(filename)
         gdb_cmds = [
             'PyGILState_Ensure()',
             # Allow payloads to import modules alongside them

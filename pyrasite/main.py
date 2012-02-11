@@ -51,8 +51,8 @@ def main():
         print "Error: The second argument must be a filename"
         sys.exit(4)
 
-    injector = CodeInjector(pid, filename, verbose=args.verbose, gdb_prefix=args.gdb_prefix)
-    injector.inject()
+    injector = CodeInjector(pid, verbose=args.verbose, gdb_prefix=args.gdb_prefix)
+    injector.inject(filename)
 
 if __name__ == '__main__':
     main()

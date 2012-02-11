@@ -25,8 +25,8 @@ class TestCodeInjection(unittest.TestCase):
         cmd = 'python -c "import time; time.sleep(0.5)"'
         p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
 
-        ci = CodeInjector(p.pid, 'payloads/helloworld.py', verbose=True)
-        ci.inject()
+        ci = CodeInjector(p.pid, verbose=True)
+        ci.inject('payloads/helloworld.py')
 
         stdout, stderr = p.communicate()
         assert 'Hello World!' in stdout, "Code injection failed"
@@ -40,8 +40,8 @@ class TestCodeInjection(unittest.TestCase):
         p = subprocess.Popen('python -c "%s"' % ';'.join(cmd),
                 shell=True, stdout=subprocess.PIPE)
 
-        ci = CodeInjector(p.pid, 'payloads/helloworld.py', verbose=True)
-        ci.inject()
+        ci = CodeInjector(p.pid, verbose=True)
+        ci.inject('payloads/helloworld.py')
 
         stdout, stderr = p.communicate()
         assert 'Hello World!' in stdout, "Multi-threaded code injection failed"

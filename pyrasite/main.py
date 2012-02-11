@@ -26,11 +26,15 @@ def main():
         epilog="For updates, visit https://github.com/lmacken/pyrasite"
         )
     parser.add_argument('pid', help="The ID of the process to inject code into")
-    parser.add_argument('filename', default=None, nargs='?', help="The second argument must be a filename")
-    parser.add_argument('--gdb-prefix', dest='gdb_prefix', help='GDB prefix (if specified during installation)', default="")
-    parser.add_argument('--verbose', dest='verbose', help='Verbose mode', default=False, action='store_const', const=True)
+    parser.add_argument('filename', default=None, nargs='?',
+                        help="The second argument must be a filename")
+    parser.add_argument('--gdb-prefix', dest='gdb_prefix',
+                        help='GDB prefix (if specified during installation)',
+                        default="")
+    parser.add_argument('--verbose', dest='verbose', help='Verbose mode',
+                        default=False, action='store_const', const=True)
 
-    if len(sys.argv)==1:
+    if len(sys.argv) == 1:
         parser.print_help()
         sys.exit(1)
 

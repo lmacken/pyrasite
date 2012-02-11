@@ -7,6 +7,7 @@ Requirements
 ~~~~~~~~~~~~
 
   - gdb (https://www.gnu.org/s/gdb) (version 7.3+)
+  - Cython (http://cython.org)
 
 Download
 ~~~~~~~~

@@ -15,19 +15,13 @@
 #
 # Copyright (C) 2011 Red Hat, Inc.
 
-from utils import run
+import subprocess, warnings
 
-class ObjectInspector(object):
-    """Inspects objects in a running Python program"""
-
-    def __init__(self, pid):
-        self.pid = pid
-
-    def inspect(self, address):
-        cmd = ' '.join([
-            'gdb --quiet -p %s -batch' % self.pid,
-            '-eval-command="print (PyObject *)%s"' % address,
-        ])
-        for line in run(cmd).split('\n'):
-            if line.startswith('$1 = '):
-                return line[5:]
+def run(cmd):
+    p = subprocess.Popen(cmd, shell=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE)
+    out, err = p.communicate()
+    if err:
+        warnings.warn(err)
+    return out.strip()

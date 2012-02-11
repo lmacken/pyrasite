@@ -28,7 +28,10 @@ Authors:
     David Malcolm <dmalcolm@redhat.com>
 """
 
-import os, subprocess, warnings
+import os
+import warnings
+
+from utils import run
 
 class CodeInjector(object):
 
@@ -53,17 +56,5 @@ class CodeInjector(object):
             'PyRun_SimpleString("execfile(\\"%s\\")")' % self.filename,
             'PyGILState_Release($1)',
             ]
-        self._run('%sgdb -p %d -batch %s' % (self.gdb_prefix, self.pid,
+        run('%sgdb -p %d -batch %s' % (self.gdb_prefix, self.pid,
             ' '.join(["-eval-command='call %s'" % cmd for cmd in gdb_cmds])))
-
-    def _run(self, cmd):
-        if self.verbose:
-            print(cmd)
-        p = subprocess.Popen(cmd, shell=True,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE)
-        out, err = p.communicate()
-        if self.verbose:
-            print(out)
-        if err:
-            print(err)

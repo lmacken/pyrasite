@@ -19,111 +19,15 @@
 import os
 import sys
 import time
-import struct
 import psutil
-import socket
 import keyword
 import tokenize
-import tempfile
-import traceback
 
 from meliae import loader
 from gi.repository import GLib, GObject, Pango, GdkPixbuf, Gtk
 
 import pyrasite
-from pyrasite.utils import run
-
-REVERSE_SHELL = """\
-import sys, struct
-sys.path.insert(0, "%s/../payloads/")
-
-from StringIO import StringIO
-from _reverseconnection import ReverseConnection
-
-class ReversePythonShell(ReverseConnection):
-    host = 'localhost'
-    port = %d
-
-    def on_command(self, s, cmd):
-        buffer = StringIO()
-        sys.stdout = buffer
-        sys.stderr = buffer
-        output = ''
-        try:
-            exec(cmd)
-            output = buffer.getvalue()
-        except Exception, e:
-            output = str(e)
-        finally:
-            sys.stdout = sys.__stdout__
-            sys.stderr = sys.__stderr__
-            buffer.close()
-        header = struct.pack('<L', len(output))
-        s.sendall(header + output)
-        return True
-
-ReversePythonShell().start()
-"""
-
-
-class PyrasiteIPC(object):
-    """
-    An object that listens for connections from the reverse python shell payload,
-    and then allows you to run commands in the other process.
-    """
-    def __init__(self, pid):
-        super(PyrasiteIPC, self).__init__()
-        self.pid = pid
-        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.sock.settimeout(5)
-        self.sock.bind(('localhost', 0))
-        self.sock.listen(20)
-        self.port = self.sock.getsockname()[1]
-        self.client = None
-        self.running = True
-
-    def listen(self):
-        print "Listening for connection on port ", self.port
-        (clientsocket, address) = self.sock.accept()
-        self.client = clientsocket
-        self.client.settimeout(3)
-        print "Connection accepted!"
-
-    def cmd(self, cmd):
-        print(cmd)
-        self.client.sendall(cmd + '\n')
-        try:
-            header_data = self._recv_bytes(4)
-            if len(header_data) == 4:
-                msg_len = struct.unpack('<L', header_data)[0]
-                data = self._recv_bytes(msg_len)
-                if len(data) == msg_len:
-                    return data
-                else:
-                    print("Response doesn't match header len (%s) : %r" % (
-                          msg_len, data))
-        except:
-            traceback.print_exc()
-            self.close()
-
-    def _recv_bytes(self, n):
-        data = ''
-        while len(data) < n:
-            chunk = self.client.recv(n - len(data))
-            if chunk == '':
-                break
-            data += chunk
-        return data
-
-    def close(self):
-        print "Closing %r" % self
-        if self.client:
-            self.client.sendall('exit\n')
-            self.client.close()
-
-    def __repr__(self):
-        return "<%s %s>" % (self.__class__.__name__, self.pid)
-
+from pyrasite.utils import run, PyrasiteIPC
 
 class Process(GObject.GObject):
 
@@ -142,25 +46,8 @@ class Process(GObject.GObject):
         a reverse subshell and having it connect back to us.
         """
         self.ipc = PyrasiteIPC(self.pid)
-
-        # Write out a reverse subprocess payload with a custom port
-        (fd, filename) = tempfile.mkstemp()
-        self.filename = filename
-        tmp = os.fdopen(fd, 'w')
-        tmp.write(REVERSE_SHELL % (
-            os.path.abspath(os.path.dirname(pyrasite.__file__)),
-            self.ipc.port))
-        tmp.close()
-
-        print "Injecting reverse connection payload (%s)" % filename
-        injector = pyrasite.CodeInjector(self.pid)
-        injector.inject(filename)
-
-        # Listen for the incoming connection from the process
+        self.ipc.inject()
         self.ipc.listen()
-
-        # Delete the payload
-        os.unlink(filename)
 
     def cmd(self, cmd, *args, **kw):
         return self.ipc.cmd(cmd, *args, **kw)

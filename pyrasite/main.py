@@ -29,11 +29,11 @@ def main():
     parser.add_argument('filename', default=None, nargs='?', help="The second argument must be a filename")
     parser.add_argument('--gdb-prefix', dest='gdb_prefix', help='GDB prefix (if specified during installation)', default="")
     parser.add_argument('--verbose', dest='verbose', help='Verbose mode', default=False, action='store_const', const=True)
-    
+
     if len(sys.argv)==1:
         parser.print_help()
         sys.exit(1)
-    
+
     args = parser.parse_args()
 
     try:
@@ -41,7 +41,7 @@ def main():
     except ValueError:
         print "Error: The first argument must be a pid"
         sys.exit(2)
-        
+
     filename = args.filename
     if filename:
         if not os.path.exists(filename):

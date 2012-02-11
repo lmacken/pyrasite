@@ -27,6 +27,7 @@ setup(name='pyrasite',
       entry_points="""
           [console_scripts]
           pyrasite = pyrasite.main:main
+          pyrasite-gui = pyrasite.tools.gui:main
           pyrasite-memory-viewer = pyrasite.tools.memory_viewer:main
       """,
       classifiers=[

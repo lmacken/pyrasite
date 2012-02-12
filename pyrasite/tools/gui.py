@@ -112,7 +112,7 @@ class PyrasiteWindow(Gtk.Window):
         self.processes = {}
         self.pid = None # Currently selected pid
 
-        self.set_title('Pyrasite')
+        self.set_title('Pyrasite v%s' % pyrasite.__version__)
         self.set_default_size (600, 400)
 
         hbox = Gtk.HBox(homogeneous=False, spacing=0)

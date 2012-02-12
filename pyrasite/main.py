@@ -19,6 +19,7 @@ import os, sys
 import argparse
 
 from inject import CodeInjector
+from utils import setup_logger
 
 def main():
     parser = argparse.ArgumentParser(
@@ -40,19 +41,21 @@ def main():
 
     args = parser.parse_args()
 
+    log = setup_logger()
+
     try:
         pid = int(args.pid)
     except ValueError:
-        print "Error: The first argument must be a pid"
+        log.error("Error: The first argument must be a pid")
         sys.exit(2)
 
     filename = args.filename
     if filename:
         if not os.path.exists(filename):
-            print "Error: Invalid path or file doesn't exist"
+            log.error("Error: Invalid path or file doesn't exist")
             sys.exit(3)
     else:
-        print "Error: The second argument must be a filename"
+        log.error("Error: The second argument must be a filename")
         sys.exit(4)
 
     injector = CodeInjector(pid, verbose=args.verbose, gdb_prefix=args.gdb_prefix)

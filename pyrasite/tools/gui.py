@@ -20,6 +20,7 @@ import os
 import sys
 import time
 import psutil
+import logging
 import keyword
 import tokenize
 
@@ -57,7 +58,7 @@ class Process(GObject.GObject):
         return self.ipc.cmd(cmd, *args, **kw)
 
     def close(self):
-        print "Closing %r" % self
+        log.debug("Closing %r" % self)
         self.ipc.close()
 
     def __repr__(self):
@@ -257,16 +258,15 @@ class PyrasiteWindow(Gtk.Window):
     def switch_page(self, notebook, page, pagenum):
         name = self.notebook.get_tab_label(self.notebook.get_nth_page(pagenum))
         if name.get_text() == 'Shell':
-            # FIXME:
             self.shell_prompt.grab_focus()
 
     def run_shell_command(self, widget):
         cmd = self.shell_prompt.get_text()
         end = self.shell_buffer.get_end_iter()
         self.shell_buffer.insert(end, '\n>>> %s\n' % cmd)
-        print "run_shell_command(%r)" % cmd
+        log.debug("run_shell_command(%r)" % cmd)
         output = self.proc.cmd(cmd)
-        print repr(output)
+        log.debug(repr(output))
         self.shell_buffer.insert(end, output)
         self.shell_prompt.set_text('')
 
@@ -283,7 +283,7 @@ class PyrasiteWindow(Gtk.Window):
         self.obj_buffer.set_text(value)
 
     def obj_row_activated_cb(self, *args, **kw):
-        print "obj_row_activated_cb(%s, %s)" % (args, kw)
+        log.debug("obj_row_activated_cb(%s, %s)" % (args, kw))
 
     def generate_description(self, proc, title):
         d = ''
@@ -607,7 +607,7 @@ class PyrasiteWindow(Gtk.Window):
     def close(self):
         self.progress.show()
         self.update_progress(None, "Shutting down")
-        print "Closing %r" % self
+        log.debug("Closing %r" % self)
         for process in self.processes.values():
             self.update_progress(None)
             process.close()
@@ -633,7 +633,8 @@ def main():
 
 
 if __name__ == '__main__':
-    print "Loading Pyrasite..."
-    main()
+    setup_logger(verbose='-v' in sys.argv)
+    log.info("Loading Pyrasite...")
+    sys.exit(main())
 
 # vim: tabstop=4 shiftwidth=4 expandtab

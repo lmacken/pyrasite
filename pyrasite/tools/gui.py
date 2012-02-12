@@ -231,7 +231,7 @@ class PyrasiteWindow(Gtk.Window):
         shell_prompt = Gtk.Entry()
         self.shell_prompt = shell_prompt
         shell_bottom.pack_start(shell_prompt, True, True, 0)
-        shell_button = Gtk.Button('Run')
+        self.shell_button = shell_button = Gtk.Button('Run')
         shell_button.connect('clicked', self.run_shell_command)
         shell_bottom.pack_start(shell_button, False, False, 0)
         shell_hbox.pack_end(shell_bottom, False, False, 0)

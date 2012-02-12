@@ -15,15 +15,16 @@
 #
 # Copyright (C) 2011 Red Hat, Inc.
 
-import unittest, subprocess
+import unittest
 
 from pyrasite.inject import CodeInjector
+from pyrasite.utils import run
 
 class TestCodeInjection(unittest.TestCase):
 
     def test_injection(self):
         cmd = 'python -c "import time; time.sleep(0.5)"'
-        p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
+        p = run(cmd, communicate=False)[0]
 
         ci = CodeInjector(p.pid, verbose=True)
         ci.inject('payloads/helloworld.py')
@@ -37,8 +38,7 @@ class TestCodeInjection(unittest.TestCase):
             'snooze = lambda: time.sleep(0.5)',
             'threading.Thread(target=snooze).start()',
             ]
-        p = subprocess.Popen('python -c "%s"' % ';'.join(cmd),
-                shell=True, stdout=subprocess.PIPE)
+        p = run('python -c "%s"' % ';'.join(cmd), communicate=False)[0]
 
         ci = CodeInjector(p.pid, verbose=True)
         ci.inject('payloads/helloworld.py')

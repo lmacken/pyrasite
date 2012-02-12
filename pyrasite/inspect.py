@@ -28,6 +28,6 @@ class ObjectInspector(object):
             'gdb --quiet -p %s -batch' % self.pid,
             '-eval-command="print (PyObject *)%s"' % address,
         ])
-        for line in run(cmd).split('\n'):
+        for line in run(cmd)[1].split('\n'):
             if line.startswith('$1 = '):
                 return line[5:]

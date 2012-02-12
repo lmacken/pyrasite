@@ -27,14 +27,18 @@ from meliae import loader
 from gi.repository import GLib, GObject, Pango, GdkPixbuf, Gtk
 
 import pyrasite
-from pyrasite.utils import run, PyrasiteIPC
+from pyrasite.utils import run, setup_logger
+from pyrasite.ipc import PyrasiteIPC
+
+log = logging.getLogger('pyrasite')
+
 
 class Process(GObject.GObject):
 
     def __init__(self, pid):
         super(Process, self).__init__()
         self.pid = pid
-        self.title = run('ps --no-heading -o cmd= -p %d' % pid)
+        self.title = run('ps --no-heading -o cmd= -p %d' % pid)[1]
         self.command = self.title
         self.title = self.title[:25]
         self.ipc = None

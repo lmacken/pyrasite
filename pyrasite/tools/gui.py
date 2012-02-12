@@ -236,6 +236,10 @@ class PyrasiteWindow(Gtk.Window):
         shell_bottom.pack_start(shell_button, False, False, 0)
         shell_hbox.pack_end(shell_bottom, False, False, 0)
 
+        # FIXME: this doesn't seem to work
+        self.shell_prompt.set_activates_default(True)
+        self.shell_button.set_receives_default(True)
+
         notebook.append_page(shell_hbox, Gtk.Label.new_with_mnemonic('_Shell'))
 
         # To try and grab focus of our text input

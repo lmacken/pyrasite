@@ -19,8 +19,10 @@ setup(name='pyrasite',
       include_package_data=True,
       zip_safe=True,
       install_requires=[
-        "meliae", # For payloads/dump_memory.py and tools/memory-viewer.py
-        "pycallgraph", # For payloads/{start,stop}_callgraph.py
+        "Cython", # Needed for meliae
+        "meliae",
+        "pycallgraph",
+        "psutil",
       ],
       tests_require=['nose'],
       test_suite='nose.collector',

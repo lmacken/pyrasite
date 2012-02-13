@@ -13,37 +13,16 @@
 # You should have received a copy of the GNU General Public License
 # along with pyrasite.  If not, see <http://www.gnu.org/licenses/>.
 #
-# Copyright (C) 2011 Red Hat, Inc.
+# Copyright (C) 2011, 2012 Red Hat, Inc., Luke Macken <lmacken@redhat.com>
 
 import sys
+import pyrasite
 
-from StringIO import StringIO
-
-from _reverseconnection import ReverseConnection
-
-class ReversePythonShell(ReverseConnection):
-
-    host = '127.0.0.1'
+class ReversePythonShell(pyrasite.ReversePythonConnection):
     port = 9001
+    reliable = False
 
-    def on_connect(self, s):
-        s.send("Python %s\nType 'quit' to exit\n>>> " % sys.version)
-
-    def on_command(self, s, cmd):
-        buffer = StringIO()
-        sys.stdout = buffer
-        sys.stderr = buffer
-        output = ''
-        try:
-            exec(cmd)
-            output = buffer.getvalue()
-        except Exception, e:
-            output = str(e)
-        finally:
-            sys.stdout = sys.__stdout__
-            sys.stderr = sys.__stderr__
-            buffer.close()
-        s.send(output + '\n>>> ')
-        return True
+    def on_connect(self):
+        self.send("Python %s\nType 'quit' to exit\n>>> " % sys.version)
 
 ReversePythonShell().start()

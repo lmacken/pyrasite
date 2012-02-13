@@ -34,6 +34,7 @@ import warnings
 from utils import run
 
 class CodeInjector(object):
+    """Injects code into a running Python process"""
 
     def __init__(self, pid, filename=None, verbose=False, gdb_prefix=""):
         self.pid = pid
@@ -46,6 +47,7 @@ class CodeInjector(object):
             self.filename = os.path.abspath(filename)
 
     def inject(self, filename=None):
+        """Inject a given file into `self.pid` using gdb"""
         if filename:
             self.filename = os.path.abspath(filename)
         gdb_cmds = [

@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU General Public License
 # along with pyrasite.  If not, see <http://www.gnu.org/licenses/>.
 #
-# Copyright (C) 2011 Red Hat, Inc.
+# Copyright (C) 2011, 2012 Red Hat, Inc.
 
 import unittest
 
@@ -27,7 +27,7 @@ class TestCodeInjection(unittest.TestCase):
         p = run(cmd, communicate=False)[0]
 
         ci = CodeInjector(p.pid, verbose=True)
-        ci.inject('payloads/helloworld.py')
+        ci.inject('pyrasite/payloads/helloworld.py')
 
         stdout, stderr = p.communicate()
         assert 'Hello World!' in stdout, "Code injection failed"
@@ -41,7 +41,7 @@ class TestCodeInjection(unittest.TestCase):
         p = run('python -c "%s"' % ';'.join(cmd), communicate=False)[0]
 
         ci = CodeInjector(p.pid, verbose=True)
-        ci.inject('payloads/helloworld.py')
+        ci.inject('pyrasite/payloads/helloworld.py')
 
         stdout, stderr = p.communicate()
         assert 'Hello World!' in stdout, "Multi-threaded code injection failed"

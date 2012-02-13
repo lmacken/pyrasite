@@ -24,6 +24,7 @@ class ObjectInspector(object):
         self.pid = pid
 
     def inspect(self, address):
+        """Return the value of an object at a given address"""
         cmd = ' '.join([
             'gdb --quiet -p %s -batch' % self.pid,
             '-eval-command="print (PyObject *)%s"' % address,

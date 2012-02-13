@@ -13,124 +13,149 @@
 # You should have received a copy of the GNU General Public License
 # along with pyrasite.  If not, see <http://www.gnu.org/licenses/>.
 #
-# Copyright (C) 2012 Red Hat, Inc., Luke Macken <lmacken@redhat.com>
+# Copyright (C) 2011, 2012 Red Hat, Inc., Luke Macken <lmacken@redhat.com>
 """
-:mod:`pyrasite.ipc` - Pyrasite Interprocess Communication
+:mod:`pyrasite.ipc` - Pyrasite Inter-Python Communication
 =========================================================
-
-This module contains :class:`PyrasiteIPC`, which handles injecting a reverse
-Python shell into a process, which connects back to us on a custom port that it
-is listening on. You can then execute commands in the process using
-:meth:`PyrastieIPC.cmd`, and get the stdout+stderr back.
-
 """
 
 import os
 import socket
 import struct
-import logging
 import tempfile
 import pyrasite
 
-log = logging.getLogger(__name__)
-
-REVERSE_SHELL = """\
-import sys, struct
-sys.path.insert(0, "%s/../payloads/")
-
-from StringIO import StringIO
-from _reverseconnection import ReverseConnection
-
-class ReversePythonShell(ReverseConnection):
-    host = 'localhost'
-    port = %d
-
-    def on_command(self, s, cmd):
-        buffer = StringIO()
-        sys.stdout = buffer
-        sys.stderr = buffer
-        output = ''
-        try:
-            exec(cmd)
-            output = buffer.getvalue()
-        except Exception, e:
-            output = str(e)
-        finally:
-            sys.stdout = sys.__stdout__
-            sys.stderr = sys.__stderr__
-            buffer.close()
-        header = struct.pack('<L', len(output))
-        s.sendall(header + output)
-        return True
-
-ReversePythonShell().start()
-"""
-
+from os.path import dirname, abspath, join
 
 class PyrasiteIPC(object):
+    """Pyrasite Inter-Python Communication.
+
+    This object is used in communicating to or from another Python process.
+
+    It can perform a variety of tasks:
+
+    - Injection of the :class:`pyrasite.ReversePythonConnection` payload via
+      :meth:`PyrasiteIPC.connect()`, which causes the process to connect back
+      to a port that we are listening on. The connection with the process is
+      then available via `self.sock`.
+
+    - Python code can then be executed in the process using
+      :meth:`PyrasiteIPC.cmd`. Both stdout and stderr are returned.
+
+    - Low-level communication with the process, both reliably (via a length
+      header) or unreliably (raw data, ideal for use with netcat) with a
+      :class:`pyrasite.ReversePythonConnection` payload, via
+      :meth:`PyrasiteIPC.send(data)` and :meth:`PyrasiteIPC.recv(data)`.
+
+    The :class:`PyrasiteIPC` is subclassed by
+    :class:`pyrasite.tools.gui.Process` as well as
+    :class:`pyrasite.reverse.ReverseConnection`.
+
     """
-    An object that listens for connections from the reverse python shell payload,
-    and then allows you to run commands in the other process.
-    """
+    # Allow subclasses to disable this and just send/receive raw data, as
+    # opposed to prepending a length header, to ensure reliability. The reason
+    # to enable 'unreliable' connections is so we can still use our reverse
+    # shell payloads with netcat.
+    reliable = True
+
     def __init__(self, pid):
         super(PyrasiteIPC, self).__init__()
         self.pid = pid
-        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.sock.settimeout(5)
-        self.sock.bind(('localhost', 0))
-        self.sock.listen(20)
-        self.port = self.sock.getsockname()[1]
-        self.client = None
-        self.running = True
+        self.sock = None
 
-    def inject(self):
-        # Write out a reverse subprocess payload with a custom port
-        (fd, filename) = tempfile.mkstemp()
-        self.filename = filename
-        tmp = os.fdopen(fd, 'w')
-        tmp.write(REVERSE_SHELL % (
-            os.path.abspath(os.path.dirname(pyrasite.__file__)),
-            self.port))
-        tmp.close()
-
-        injector = pyrasite.CodeInjector(self.pid)
-        injector.inject(filename)
+    def connect(self):
+        """
+        Setup a communication socket with the process by injecting
+        a reverse subshell and having it connect back to us.
+        """
+        self.listen()
+        self.inject()
+        self.wait()
 
     def listen(self):
-        (clientsocket, address) = self.sock.accept()
-        self.client = clientsocket
-        self.client.settimeout(3)
+        """Listen on a random port"""
+        self.server_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.server_sock.settimeout(5)
+        self.server_sock.bind(('localhost', 0))
+        self.server_sock.listen(1)
+        self.port = self.server_sock.getsockname()[1]
+        self.running = True
+
+    def create_payload(self):
+        """Write out a reverse python connection payload with a custom port"""
+        (fd, filename) = tempfile.mkstemp()
+        tmp = os.fdopen(fd, 'w')
+        path = dirname(abspath(join(pyrasite.__file__, '..')))
+        payload = file(join(path, 'pyrasite', 'reverse.py'))
+        tmp.write('import sys; sys.path.insert(0, "%s")\n' % path)
+
+        for line in payload.readlines():
+            if line.startswith('#'):
+                continue
+            line = line.replace('port = 9001', 'port = %d' % self.port)
+            line = line.replace('reliable = False', 'reliable = True')
+            tmp.write(line)
+
+        tmp.write('ReversePythonConnection().start()\n')
+        tmp.close()
+        payload.close()
+
+        return filename
+
+    def inject(self):
+        """Inject the payload into the process."""
+        filename = self.create_payload()
+        injector = pyrasite.CodeInjector(self.pid)
+        injector.inject(filename)
+        os.unlink(filename)
+
+    def wait(self):
+        """Wait for the injected payload to connect back to us"""
+        (clientsocket, address) = self.server_sock.accept()
+        self.sock = clientsocket
+        self.sock.settimeout(5)
+        self.address = address
 
     def cmd(self, cmd):
-        self.client.sendall(cmd + '\n')
-        try:
-            header_data = self._recv_bytes(4)
+        """Send a python command to exec in the process and return the output"""
+        self.send(cmd + '\n')
+        return self.recv()
+
+    def send(self, data):
+        """Send arbitrary data to the process via self.sock"""
+        header = ''
+        if self.reliable:
+            header = struct.pack('<L', len(data))
+        self.sock.sendall(header + data)
+
+    def recv(self):
+        """Receive a command from a given socket"""
+        if self.reliable:
+            header_data = self.recv_bytes(4)
             if len(header_data) == 4:
                 msg_len = struct.unpack('<L', header_data)[0]
-                data = self._recv_bytes(msg_len)
+                data = self.recv_bytes(msg_len)
                 if len(data) == msg_len:
                     return data
-                else:
-                    log.error("Response doesn't match header len (%s) : %r" % (
-                          msg_len, data))
-        except Exception, e:
-            log.exception(e)
-            self.close()
+        else:
+            return self.sock.recv(4096)
 
-    def _recv_bytes(self, n):
+    def recv_bytes(self, n):
+        """Receive n bytes from a socket"""
         data = ''
         while len(data) < n:
-            chunk = self.client.recv(n - len(data))
+            chunk = self.sock.recv(n - len(data))
             if chunk == '':
                 break
             data += chunk
         return data
 
     def close(self):
-        os.unlink(self.filename)
-        if self.client:
-            self.client.sendall('exit\n')
-            self.client.close()
+        if self.sock:
+            self.sock.close()
 
     def __repr__(self):
         return "<%s %s>" % (self.__class__.__name__, self.pid)
+
+    def __str__(self):
+        return self.title

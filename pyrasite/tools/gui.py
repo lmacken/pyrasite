@@ -15,6 +15,10 @@
 # along with pyrasite.  If not, see <http://www.gnu.org/licenses/>.
 #
 # Copyright (C) 2012 Red Hat, Inc., Luke Macken <lmacken@redhat.com>
+#
+# This interface may contain some code from the gtk-demo, written
+# by John (J5) Palmieri, and licensed under the LGPLv2.1
+# http://git.gnome.org/browse/pygobject/tree/demos/gtk-demo/gtk-demo.py
 
 import os
 import sys
@@ -25,51 +29,28 @@ import keyword
 import tokenize
 
 from meliae import loader
-from gi.repository import GLib, GObject, Pango, GdkPixbuf, Gtk
+from gi.repository import GLib, GObject, Pango, Gtk
 
 import pyrasite
-from pyrasite.utils import run, setup_logger
-from pyrasite.ipc import PyrasiteIPC
+from pyrasite.utils import setup_logger, run
 
 log = logging.getLogger('pyrasite')
 
 
-class Process(GObject.GObject):
+class Process(pyrasite.PyrasiteIPC, GObject.GObject):
+    """
+    A :class:`GObject.GObject` subclass for use in the :class:`ProcessTreeStore`
+    """
 
-    def __init__(self, pid):
-        super(Process, self).__init__()
-        self.pid = pid
-        self.title = run('ps --no-heading -o cmd= -p %d' % pid)[1]
-        self.command = self.title
-        self.title = self.title[:25]
-        self.ipc = None
-        self.filename = None
-
-    def connect(self):
-        """
-        Setup a communication socket with the process by injecting
-        a reverse subshell and having it connect back to us.
-        """
-        self.ipc = PyrasiteIPC(self.pid)
-        self.ipc.inject()
-        self.ipc.listen()
-
-    def cmd(self, cmd, *args, **kw):
-        return self.ipc.cmd(cmd, *args, **kw)
-
-    def close(self):
-        log.debug("Closing %r" % self)
-        self.ipc.close()
-
-    def __repr__(self):
-        return "<Process %d '%s'>" % (self.pid, self.title)
-
-    def __str__(self):
-        return self.title
+    @property
+    def title(self):
+        if not getattr(self, '_title', None):
+            self._title = run('ps --no-heading -o cmd= -p %d' % self.pid)[1]
+        return self._title
 
 
 class ProcessTreeStore(Gtk.TreeStore):
-    """ This TreeStore finds all running python processes.  """
+    """This TreeStore finds all running python processes."""
 
     def __init__(self, *args):
         Gtk.TreeStore.__init__(self, str, Process, Pango.Style)
@@ -80,33 +61,12 @@ class ProcessTreeStore(Gtk.TreeStore):
                 try:
                     maps = open('/proc/%d/maps' % pid).read().strip()
                     if 'python' in maps:
-                        self.append(None, (proc.title, proc, Pango.Style.NORMAL))
+                        self.append(None, (proc.title.strip(), proc,
+                                           Pango.Style.NORMAL))
                 except IOError:
                     pass
             except ValueError:
                 pass
-
-
-class InputStream(object):
-    '''
-    Simple Wrapper for File-like objects. [c]StringIO doesn't provide
-    a readline function for use with generate_tokens.
-    Using a iterator-like interface doesn't succeed, because the readline
-    function isn't used in such a context. (see <python-lib>/tokenize.py)
-    '''
-    def __init__(self, data):
-        self.__data = [ '%s\n' % x for x in data.splitlines() ]
-        self.__lcount = 0
-
-    def readline(self):
-        try:
-            line = self.__data[self.__lcount]
-            self.__lcount += 1
-        except IndexError:
-            line = ''
-            self.__lcount = 0
-
-        return line
 
 
 class PyrasiteWindow(Gtk.Window):
@@ -240,7 +200,8 @@ class PyrasiteWindow(Gtk.Window):
         self.shell_prompt.set_activates_default(True)
         self.shell_button.set_receives_default(True)
 
-        notebook.append_page(shell_hbox, Gtk.Label.new_with_mnemonic('_Shell'))
+        shell_label = Gtk.Label.new_with_mnemonic('_Shell')
+        notebook.append_page(shell_hbox, shell_label)
 
         # To try and grab focus of our text input
         notebook.connect('switch-page', self.switch_page)
@@ -400,8 +361,8 @@ class PyrasiteWindow(Gtk.Window):
 
         self.fontify()
         self.update_progress(1.0)
-        self.update_progress(0.0)
         self.progress.hide()
+        self.update_progress(0.0)
 
     def dump_objects(self, proc):
         cmd = ';'.join(["import os, shutil", "from meliae import scanner",
@@ -414,12 +375,6 @@ class PyrasiteWindow(Gtk.Window):
         # Clear previous model
         self.obj_store.clear()
         self.update_progress(0.4, "Loading object dump")
-
-        obj_dump = '/tmp/%d.objects' % proc.pid
-        if not os.path.exists(obj_dump):
-            time.sleep(1)
-            if not os.path.exists(obj_dump):
-                time.sleep(2)
 
         objects = loader.load('/tmp/%d.objects' % proc.pid)
         objects.compute_referrers()
@@ -440,10 +395,11 @@ class PyrasiteWindow(Gtk.Window):
                 obj = summary.summaries[i - 2]
                 self.obj_store.append([str(obj.max_address)] +
                                        map(intify, line.split()[1:]))
+
     def dump_stacks(self, proc):
         self.update_progress(0.55, "Dumping stacks")
         payloads = os.path.join(os.path.abspath(os.path.dirname(
-            pyrasite.__file__)), '..', 'payloads')
+            pyrasite.__file__)), 'payloads')
         dump_stacks = os.path.join(payloads, 'dump_stacks.py')
         code = proc.cmd(file(dump_stacks).read())
         self.update_progress(0.6)
@@ -456,7 +412,7 @@ class PyrasiteWindow(Gtk.Window):
         self.update_progress(0.7, "Tracing call stack")
         proc.cmd('import pycallgraph; pycallgraph.start_trace()')
         self.update_progress(0.8)
-        time.sleep(1)
+        time.sleep(1) # TODO: make this configurable in the UI
         self.update_progress(0.9, "Generating call stack graph")
         image = '/tmp/%d-callgraph.png' % proc.pid
         proc.cmd('import pycallgraph; pycallgraph.make_dot_graph("%s")' % image)
@@ -615,6 +571,28 @@ class PyrasiteWindow(Gtk.Window):
         for process in self.processes.values():
             self.update_progress(None)
             process.close()
+
+
+class InputStream(object):
+    '''
+    Simple Wrapper for File-like objects. [c]StringIO doesn't provide
+    a readline function for use with generate_tokens.
+    Using a iterator-like interface doesn't succeed, because the readline
+    function isn't used in such a context. (see <python-lib>/tokenize.py)
+    '''
+    def __init__(self, data):
+        self.__data = [ '%s\n' % x for x in data.splitlines() ]
+        self.__lcount = 0
+
+    def readline(self):
+        try:
+            line = self.__data[self.__lcount]
+            self.__lcount += 1
+        except IndexError:
+            line = ''
+            self.__lcount = 0
+
+        return line
 
 
 def main():

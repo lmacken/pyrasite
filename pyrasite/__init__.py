@@ -1,8 +1,11 @@
 from inject import CodeInjector
 from inspect import ObjectInspector
+from ipc import PyrasiteIPC
+from reverse import ReverseConnection, ReversePythonConnection
 
-__version__ = '1.1'
-__all__ = ('CodeInjector', 'ObjectInspector')
+__version__ = '1.99'
+__all__ = ('CodeInjector', 'ObjectInspector', 'PyrasiteIPC',
+           'ReverseConnection', 'ReversePythonConnection')
 __license__ = """\
 pyrasite is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by

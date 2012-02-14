@@ -404,6 +404,7 @@ class PyrasiteWindow(Gtk.Window):
         code = proc.cmd(file(dump_stacks).read())
         self.update_progress(0.6)
 
+        self.source_buffer.set_text('')
         start = self.source_buffer.get_iter_at_offset(0)
         end = start.copy()
         self.source_buffer.insert(end, code)

@@ -33,7 +33,7 @@ from meliae import loader
 from gi.repository import GLib, GObject, Pango, Gtk, WebKit
 
 import pyrasite
-from pyrasite.utils import setup_logger, run
+from pyrasite.utils import setup_logger, run, humanize_bytes
 
 log = logging.getLogger('pyrasite')
 
@@ -306,12 +306,12 @@ class PyrasiteWindow(Gtk.Window):
                 cpu_user = cputimes.user,
                 cpu_sys = cputimes.system,
                 mem = p.get_memory_percent(),
-                mem_rss = meminfo.rss,
-                mem_vms = meminfo.vms,
+                mem_rss = humanize_bytes(meminfo.rss),
+                mem_vms = humanize_bytes(meminfo.vms),
                 read_count = io.read_count,
-                read_bytes = io.read_bytes,
+                read_bytes = humanize_bytes(io.read_bytes),
                 write_count = io.write_count,
-                write_bytes = io.write_bytes,
+                write_bytes = humanize_bytes(io.write_bytes),
                 )
 
         open_files = p.get_open_files()

@@ -241,7 +241,7 @@ class PyrasiteWindow(Gtk.Window):
     def switch_page(self, notebook, page, pagenum):
         name = self.notebook.get_tab_label(self.notebook.get_nth_page(pagenum))
         if name.get_text() == 'Shell':
-            self.shell_prompt.grab_focus()
+            GObject.timeout_add(0, self.shell_prompt.grab_focus)
 
     def run_shell_command(self, widget):
         cmd = self.shell_prompt.get_text()

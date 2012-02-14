@@ -277,6 +277,7 @@ class PyrasiteWindow(Gtk.Window):
 
         self.info_html = """
         <style>
+        body {font: normal 12px/150%% Arial, Helvetica, sans-serif;}
         .grid table { border-collapse: collapse; text-align: left; width: 100%%; }
         .grid {font: normal 12px/150%% Arial, Helvetica, sans-serif; background: #fff; overflow: hidden; border: 1px solid #006699; -webkit-border-radius: 3px; border-radius: 3px; }
         .grid table td, .grid table th { padding: 3px 10px; }
@@ -375,7 +376,10 @@ class PyrasiteWindow(Gtk.Window):
 
         # The Details tab
         self.details_html = """
-        <h3>%s</h3>
+        <style>
+        body {font: normal 12px/150%% Arial, Helvetica, sans-serif;}
+        </style>
+        <h2>%s</h2>
         <ul>
             <li><b>status:</b> %s</li>
             <li><b>cwd:</b> %s</li>

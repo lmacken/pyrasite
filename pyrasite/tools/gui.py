@@ -23,13 +23,14 @@
 import os
 import sys
 import time
+import socket
 import psutil
 import logging
 import keyword
 import tokenize
 
 from meliae import loader
-from gi.repository import GLib, GObject, Pango, Gtk
+from gi.repository import GLib, GObject, Pango, Gtk, WebKit
 
 import pyrasite
 from pyrasite.utils import setup_logger, run
@@ -94,10 +95,16 @@ class PyrasiteWindow(Gtk.Window):
         main_vbox.pack_end(self.progress, False, False, 0)
         hbox.pack_start(main_vbox, True, True, 0)
 
-        (text_widget, info_buffer) = self.create_text(False)
-        notebook.append_page(text_widget, Gtk.Label.new_with_mnemonic('_Info'))
-        self.info_buffer = info_buffer
-        self.info_buffer.create_tag('title', font = 'Sans 18')
+        self.info_html = ''
+        self.info_view = WebKit.WebView()
+        self.info_view.load_string(self.info_html, "text/html", "utf-8", '#')
+
+        info_window = Gtk.ScrolledWindow(hadjustment = None,
+                                         vadjustment = None)
+        info_window.set_policy(Gtk.PolicyType.AUTOMATIC,
+                               Gtk.PolicyType.AUTOMATIC)
+        info_window.add(self.info_view)
+        notebook.append_page(info_window, Gtk.Label.new_with_mnemonic('_Info'))
 
         (stacks_widget, source_buffer) = self.create_text(True)
         notebook.append_page(stacks_widget, Gtk.Label.new_with_mnemonic('_Stacks'))
@@ -251,64 +258,105 @@ class PyrasiteWindow(Gtk.Window):
         log.debug("obj_row_activated_cb(%s, %s)" % (args, kw))
 
     def generate_description(self, proc, title):
-        d = ''
         p = psutil.Process(proc.pid)
 
         cputimes = p.get_cpu_times()
-        d += '\nCPU usage: %0.2f%% (%s user, %s system)\n' % (
-                p.get_cpu_percent(interval=1.0),
-                cputimes.user, cputimes.system)
-
         meminfo = p.get_memory_info()
-        d += 'Memory usage: %0.2f%% (%s RSS, %s VMS)\n\n' % (
-                p.get_memory_percent(),
-                meminfo.rss, meminfo.vms)
-
-        d += '[ Open Files ]'
-        for open_file in p.get_open_files():
-            d += '\n' + str(open_file)
-
-        d += '\n\n[ Connections ]'
-        for conn in p.get_connections():
-            d += '\n' + str(conn)
-
-        d += '\n\n[ Threads ]'
-        for thread in p.get_threads():
-            d += '\n' + str(thread)
-
         io = p.get_io_counters()
-        d += '\n\n[ IO ]\nread count: %s\n' % io.read_count
-        d += 'read bytes: %s\n' % io.read_bytes
-        d += 'write count: %s\n' % io.write_count
-        d += 'write bytes: %s\n' % io.write_bytes
 
-        d += '\n[ Details ]\n'
-        d += 'status: %s\n' % p.status
-        d += 'cwd: %s\n' % p.getcwd()
-        d += 'cmdline: %s\n' % ' '.join(p.cmdline)
-        d += 'terminal: %s\n' % p.terminal
-        d += 'created: %s\n' % time.ctime(p.create_time)
-        d += 'username: %s\n' % p.username
-        d += 'uid: %s\n' % p.uids.real
-        d += 'gid: %s\n' % p.gids.real
-        d += 'nice: %s\n\n' % p.nice
+        self.info_html = """
+        <h2>%(title)s</h2>
+        <h3>Resource Usage</h3>
+        <ul>
+        <li><b>CPU:</b> %(cpu)0.2f%% (%(cpu_user)s user, %(cpu_sys)s system)</li>
+        <li><b>Memory:</b> %(mem)0.2f%% (%(mem_rss)s RSS, %(mem_vms)s VMS)</li>
+        <li><b>Read count:</b> %(read_count)s</li>
+        <li><b>Read bytes:</b> %(read_bytes)s</li>
+        <li><b>Write count:</b> %(write_count)s</li>
+        <li><b>Write bytes:</b> %(write_bytes)s</li>
+        </ul>
+        """ % dict(
+                title = proc.title,
+                cpu = p.get_cpu_percent(interval=1.0),
+                cpu_user = cputimes.user,
+                cpu_sys = cputimes.system,
+                mem = p.get_memory_percent(),
+                mem_rss = meminfo.rss,
+                mem_vms = meminfo.vms,
+                read_count = io.read_count,
+                read_bytes = io.read_bytes,
+                write_count = io.write_count,
+                write_bytes = io.write_bytes,
+                )
 
-        # output and style the title
-        (start, end) = self.info_buffer.get_bounds()
-        self.info_buffer.delete(start, end)
-        (start, end) = self.source_buffer.get_bounds()
-        self.source_buffer.delete(start, end)
+        open_files = p.get_open_files()
+        if open_files:
+            self.info_html += """
+            <h3>Open Files</h3>
+            <table border="1">
+            <thead><tr><th>fd</th><th>Path</th></tr></thead>
+            %(open_files)s
+            </table>
+            """ % dict(
+            open_files = ''.join(['<tr><td>%s</td><td>%s</td></tr>' %
+                                  (f.fd, f.path) for f in open_files]))
 
-        start = self.info_buffer.get_iter_at_offset(0)
-        end = start.copy()
-        self.info_buffer.insert(end, title)
-        start = end.copy()
-        start.backward_chars(len(title))
-        self.info_buffer.apply_tag_by_name('title', start, end)
-        self.info_buffer.insert(end, '\n')
+        conns = p.get_connections()
+        if conns:
+            self.info_html += """
+            <h3>Connections</h3>
+            <table border="1">
+            <thead><tr><th>fd</th><th>Family</th><th>Type</th>
+            <th>Local</th><th>Remote</th><th>Status</th></tr></thead>
+            """
+            families = dict([(getattr(socket, k), k) for k in dir(socket)
+                             if k.startswith('AF_')])
+            types = dict([(getattr(socket, k), k) for k in dir(socket)
+                          if k.startswith('SOCK_')])
+            for c in conns:
+                self.info_html += """
+                <tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td>
+                <td>%s</td></tr>
+                """ % (c.fd, families[c.family], types[c.type],
+                       ':'.join(map(str, c.local_address)),
+                       ':'.join(map(str, c.remote_address)),
+                       c.status)
+            self.info_html += """
+            </table>
+            """
 
-        # output the description
-        self.info_buffer.insert(end, d)
+        threads = p.get_threads()
+        if threads:
+            self.info_html += """
+            <h3>Threads</h3>
+            <table border="1">
+            <thead><tr><th>ID</th><th>User Time</th><th>System Time</th>
+            </tr></thead>
+            """
+            for thread in threads:
+                self.info_html += """
+                <tr><td>%s</td><td>%s</td><td>%s</td></tr>
+                """ % (thread.id, thread.user_time, thread.system_time)
+            self.info_html += "</table>"
+
+        self.info_html += """
+        <h3>Details</h3>
+        <ul>
+            <li><b>status:</b> %s</li>
+            <li><b>cwd:</b> %s</li>
+            <li><b>cmdline:</b> %s</li>
+            <li><b>terminal:</b> %s</li>
+            <li><b>created:</b> %s</li>
+            <li><b>username:</b> %s</li>
+            <li><b>uid:</b> %s</li>
+            <li><b>gid:</b> %s</li>
+            <li><b>nice:</b> %s</li>
+        </ul>
+        """ % (p.status, p.getcwd(), ' '.join(p.cmdline),
+               p.terminal, time.ctime(p.create_time),
+               p.username, p.uids.real, p.gids.real, p.nice)
+
+        self.info_view.load_string(self.info_html, "text/html", "utf-8", '#')
 
     def update_progress(self, fraction, text=None):
         if text:

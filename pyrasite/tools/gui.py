@@ -276,6 +276,16 @@ class PyrasiteWindow(Gtk.Window):
         io = p.get_io_counters()
 
         self.info_html = """
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html
+      PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:svg="http://www.w3.org/2000/svg"
+      xmlns:xlink="http://www.w3.org/1999/xlink">
+
+<head>
+
         <style>
         body {font: normal 12px/150%% Arial, Helvetica, sans-serif;}
         .grid table { border-collapse: collapse; text-align: left; width: 100%%; }
@@ -290,9 +300,14 @@ class PyrasiteWindow(Gtk.Window):
         .grid table tbody .alt td { background: #E1EEf4; color: #00557F; }
         .grid table tbody td:first-child { border: none; }
         </style>
+</head>
+<body>
 
         <h2>%(title)s</h2>
         <ul>
+        Sparkline:
+        <span id="cpu_graph" class="cpu_graph">Loading</span>
+        <br/>
         <li><b>CPU:</b> %(cpu)0.2f%% (%(cpu_user)s user, %(cpu_sys)s system)</li>
         <li><b>Memory:</b> %(mem)0.2f%% (%(mem_rss)s RSS, %(mem_vms)s VMS)</li>
         <li><b>Read count:</b> %(read_count)s</li>
@@ -372,6 +387,8 @@ class PyrasiteWindow(Gtk.Window):
                        thread.user_time, thread.system_time)
             self.info_html += "</tbody></table></div>"
 
+        self.info_html += "</body></html>"
+
         self.info_view.load_string(self.info_html, "text/html", "utf-8", '#')
 
         # The Details tab
@@ -396,6 +413,27 @@ class PyrasiteWindow(Gtk.Window):
                p.username, p.uids.real, p.gids.real, p.nice)
 
         self.details_view.load_string(self.details_html, "text/html", "utf-8", '#')
+
+        def test():
+            # Inject jQuery
+            jquery = file('jquery-1.7.1.min.js')
+            self.details_view.execute_script(jquery.read())
+            jquery.close()
+
+            # Inject Sparkline
+            sparkline = file('jquery.sparkline.min.js')
+            self.details_view.execute_script(sparkline.read())
+            sparkline.close()
+
+            # FIXME: alert works, sparkline does not...
+            self.details_view.execute_script("""
+                jQuery(document).ready(function() {
+                    jQuery('#cpu_graph').sparkline();
+                    alert('FOO');
+                });
+            """)
+
+        GObject.timeout_add(500, test)
 
     def update_progress(self, fraction, text=None):
         if text:

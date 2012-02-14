@@ -104,7 +104,7 @@ class PyrasiteWindow(Gtk.Window):
         info_window.set_policy(Gtk.PolicyType.AUTOMATIC,
                                Gtk.PolicyType.AUTOMATIC)
         info_window.add(self.info_view)
-        notebook.append_page(info_window, Gtk.Label.new_with_mnemonic('_Info'))
+        notebook.append_page(info_window, Gtk.Label.new_with_mnemonic('_Resources'))
 
         (stacks_widget, source_buffer) = self.create_text(True)
         notebook.append_page(stacks_widget, Gtk.Label.new_with_mnemonic('_Stacks'))
@@ -224,6 +224,17 @@ class PyrasiteWindow(Gtk.Window):
 
         notebook.append_page(scrolled_window, Gtk.Label.new_with_mnemonic('_Call Graph'))
 
+        self.details_html = ''
+        self.details_view = WebKit.WebView()
+        self.details_view.load_string(self.details_html, "text/html", "utf-8", '#')
+
+        details_window = Gtk.ScrolledWindow(hadjustment = None,
+                                         vadjustment = None)
+        details_window.set_policy(Gtk.PolicyType.AUTOMATIC,
+                               Gtk.PolicyType.AUTOMATIC)
+        details_window.add(self.details_view)
+        notebook.append_page(details_window, Gtk.Label.new_with_mnemonic('_Details'))
+
         self.show_all()
         self.progress.hide()
 
@@ -265,8 +276,21 @@ class PyrasiteWindow(Gtk.Window):
         io = p.get_io_counters()
 
         self.info_html = """
+        <style>
+        .grid table { border-collapse: collapse; text-align: left; width: 100%%; }
+        .grid {font: normal 12px/150%% Arial, Helvetica, sans-serif; background: #fff; overflow: hidden; border: 1px solid #006699; -webkit-border-radius: 3px; border-radius: 3px; }
+        .grid table td, .grid table th { padding: 3px 10px; }
+        .grid table thead th {
+            background:-webkit-gradient( linear, left top, left bottom, color-stop(0.05, #006699), color-stop(1, #00557F) );
+            background-color:#006699; color:#FFFFFF; font-size: 15px;
+            font-weight: bold; border-left: 1px solid #0070A8; }
+        .grid table thead th:first-child { border: none; }
+        .grid table tbody td { color: #00557F; border-left: 1px solid #E1EEF4;font-size: 12px;font-weight: normal; }
+        .grid table tbody .alt td { background: #E1EEf4; color: #00557F; }
+        .grid table tbody td:first-child { border: none; }
+        </style>
+
         <h2>%(title)s</h2>
-        <h3>Resource Usage</h3>
         <ul>
         <li><b>CPU:</b> %(cpu)0.2f%% (%(cpu_user)s user, %(cpu_sys)s system)</li>
         <li><b>Memory:</b> %(mem)0.2f%% (%(mem_rss)s RSS, %(mem_vms)s VMS)</li>
@@ -293,54 +317,65 @@ class PyrasiteWindow(Gtk.Window):
         if open_files:
             self.info_html += """
             <h3>Open Files</h3>
-            <table border="1">
-            <thead><tr><th>fd</th><th>Path</th></tr></thead>
-            %(open_files)s
-            </table>
+            <div class="grid">
+                <table>
+                    <thead><tr><th>fd</th><th>Path</th></tr></thead>
+                    <tbody>%(open_files)s</tbody>
+                </table>
+            </div>
             """ % dict(
-            open_files = ''.join(['<tr><td>%s</td><td>%s</td></tr>' %
-                                  (f.fd, f.path) for f in open_files]))
+            open_files = ''.join(['<tr%s><td>%s</td><td>%s</td></tr>' %
+                                  (i % 2 and ' class="alt"' or '',f.fd,f.path)
+                                  for i, f in enumerate(open_files)]))
 
         conns = p.get_connections()
         if conns:
             self.info_html += """
             <h3>Connections</h3>
-            <table border="1">
-            <thead><tr><th>fd</th><th>Family</th><th>Type</th>
-            <th>Local</th><th>Remote</th><th>Status</th></tr></thead>
+            <div class="grid">
+                <table>
+                    <thead><tr><th>fd</th><th>Family</th><th>Type</th>
+                    <th>Local</th><th>Remote</th><th>Status</th></tr></thead>
+                    <tbody>
             """
             families = dict([(getattr(socket, k), k) for k in dir(socket)
                              if k.startswith('AF_')])
             types = dict([(getattr(socket, k), k) for k in dir(socket)
                           if k.startswith('SOCK_')])
-            for c in conns:
+            for i, c in enumerate(conns):
                 self.info_html += """
-                <tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td>
+                <tr%s><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td>
                 <td>%s</td></tr>
-                """ % (c.fd, families[c.family], types[c.type],
+                """ % (i % 2 and ' class="alt"' or '', c.fd,
+                       families[c.family], types[c.type],
                        ':'.join(map(str, c.local_address)),
                        ':'.join(map(str, c.remote_address)),
                        c.status)
             self.info_html += """
-            </table>
+                </tbody></table></div>
             """
 
         threads = p.get_threads()
         if threads:
             self.info_html += """
             <h3>Threads</h3>
-            <table border="1">
-            <thead><tr><th>ID</th><th>User Time</th><th>System Time</th>
-            </tr></thead>
+            <div class="grid">
+                <table>
+                    <thead><tr><th>ID</th><th>User Time</th><th>System Time</th>
+                    </tr></thead><tbody>
             """
-            for thread in threads:
+            for i, thread in enumerate(threads):
                 self.info_html += """
-                <tr><td>%s</td><td>%s</td><td>%s</td></tr>
-                """ % (thread.id, thread.user_time, thread.system_time)
-            self.info_html += "</table>"
+                <tr%s><td>%s</td><td>%s</td><td>%s</td></tr>
+                """ % (i % 2 and ' class="alt"' or '', thread.id,
+                       thread.user_time, thread.system_time)
+            self.info_html += "</tbody></table></div>"
 
-        self.info_html += """
-        <h3>Details</h3>
+        self.info_view.load_string(self.info_html, "text/html", "utf-8", '#')
+
+        # The Details tab
+        self.details_html = """
+        <h3>%s</h3>
         <ul>
             <li><b>status:</b> %s</li>
             <li><b>cwd:</b> %s</li>
@@ -352,11 +387,11 @@ class PyrasiteWindow(Gtk.Window):
             <li><b>gid:</b> %s</li>
             <li><b>nice:</b> %s</li>
         </ul>
-        """ % (p.status, p.getcwd(), ' '.join(p.cmdline),
+        """ % (proc.title, p.status, p.getcwd(), ' '.join(p.cmdline),
                p.terminal, time.ctime(p.create_time),
                p.username, p.uids.real, p.gids.real, p.nice)
 
-        self.info_view.load_string(self.info_html, "text/html", "utf-8", '#')
+        self.details_view.load_string(self.details_html, "text/html", "utf-8", '#')
 
     def update_progress(self, fraction, text=None):
         if text:

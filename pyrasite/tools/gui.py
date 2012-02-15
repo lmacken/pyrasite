@@ -417,19 +417,17 @@ class PyrasiteWindow(Gtk.Window):
         def test():
             # Inject jQuery
             jquery = file('jquery-1.7.1.min.js')
-            self.details_view.execute_script(jquery.read())
+            self.info_view.execute_script(jquery.read())
             jquery.close()
 
             # Inject Sparkline
             sparkline = file('jquery.sparkline.min.js')
-            self.details_view.execute_script(sparkline.read())
+            self.info_view.execute_script(sparkline.read())
             sparkline.close()
 
-            # FIXME: alert works, sparkline does not...
-            self.details_view.execute_script("""
+            self.info_view.execute_script("""
                 jQuery(document).ready(function() {
-                    jQuery('#cpu_graph').sparkline();
-                    alert('FOO');
+                    jQuery('#cpu_graph').sparkline([10,8,3,7,4,4,1]);
                 });
             """)
 

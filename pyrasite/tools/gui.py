@@ -33,7 +33,7 @@ from meliae import loader
 from gi.repository import GLib, GObject, Pango, Gtk, WebKit
 
 import pyrasite
-from pyrasite.utils import setup_logger, run
+from pyrasite.utils import setup_logger, run, humanize_bytes
 
 log = logging.getLogger('pyrasite')
 
@@ -321,12 +321,12 @@ class PyrasiteWindow(Gtk.Window):
                 cpu_user = cputimes.user,
                 cpu_sys = cputimes.system,
                 mem = p.get_memory_percent(),
-                mem_rss = meminfo.rss,
-                mem_vms = meminfo.vms,
+                mem_rss = humanize_bytes(meminfo.rss),
+                mem_vms = humanize_bytes(meminfo.vms),
                 read_count = io.read_count,
-                read_bytes = io.read_bytes,
+                read_bytes = humanize_bytes(io.read_bytes),
                 write_count = io.write_count,
-                write_bytes = io.write_bytes,
+                write_bytes = humanize_bytes(io.write_bytes),
                 )
 
         open_files = p.get_open_files()
@@ -417,19 +417,17 @@ class PyrasiteWindow(Gtk.Window):
         def test():
             # Inject jQuery
             jquery = file('jquery-1.7.1.min.js')
-            self.details_view.execute_script(jquery.read())
+            self.info_view.execute_script(jquery.read())
             jquery.close()
 
             # Inject Sparkline
             sparkline = file('jquery.sparkline.min.js')
-            self.details_view.execute_script(sparkline.read())
+            self.info_view.execute_script(sparkline.read())
             sparkline.close()
 
-            # FIXME: alert works, sparkline does not...
-            self.details_view.execute_script("""
+            self.info_view.execute_script("""
                 jQuery(document).ready(function() {
-                    jQuery('#cpu_graph').sparkline();
-                    alert('FOO');
+                    jQuery('#cpu_graph').sparkline([10,8,3,7,4,4,1]);
                 });
             """)
 

@@ -27,13 +27,16 @@ from StringIO import StringIO
 from pyrasite.ipc import PyrasiteIPC
 
 class ReverseConnection(threading.Thread, PyrasiteIPC):
+    """A payload that connects to a given host:port and receives commands"""
 
     host = '127.0.0.1'
     port = 9001
 
-    def __init__(self, port=None):
+    def __init__(self, host=None, port=None):
         super(ReverseConnection, self).__init__()
         self.sock = None
+        if host:
+            self.host = host
         if port:
             self.port = port
 
@@ -64,7 +67,10 @@ class ReverseConnection(threading.Thread, PyrasiteIPC):
 
 
 class ReversePythonConnection(ReverseConnection):
+    """A reverse Python connection payload.
 
+    Executes Python commands and returns the output.
+    """
     def on_command(self, cmd):
         buffer = StringIO()
         sys.stdout = buffer

@@ -28,7 +28,9 @@ import psutil
 import logging
 import keyword
 import tokenize
+import threading
 
+from os.path import join, abspath, dirname
 from meliae import loader
 from gi.repository import GLib, GObject, Pango, Gtk, WebKit
 
@@ -36,6 +38,19 @@ import pyrasite
 from pyrasite.utils import setup_logger, run, humanize_bytes
 
 log = logging.getLogger('pyrasite')
+
+socket_families = dict([(getattr(socket, k), k) for k in dir(socket)
+                        if k.startswith('AF_')])
+
+socket_types = dict([(getattr(socket, k), k) for k in dir(socket)
+                     if k.startswith('SOCK_')])
+
+POLL_INTERVAL = 3
+cpu_intervals = []
+cpu_details = ''
+mem_intervals = []
+mem_details = ''
+read_count = read_bytes = write_count = write_bytes = 0
 
 
 class Process(pyrasite.PyrasiteIPC, GObject.GObject):
@@ -77,6 +92,7 @@ class PyrasiteWindow(Gtk.Window):
 
         self.processes = {}
         self.pid = None # Currently selected pid
+        self.resource_thread = None
 
         self.set_title('Pyrasite v%s' % pyrasite.__version__)
         self.set_default_size (600, 400)
@@ -270,12 +286,10 @@ class PyrasiteWindow(Gtk.Window):
 
     def generate_description(self, proc, title):
         p = psutil.Process(proc.pid)
-
-        cputimes = p.get_cpu_times()
-        meminfo = p.get_memory_info()
         io = p.get_io_counters()
 
         self.info_html = """
+        <html><head>
         <style>
         body {font: normal 12px/150%% Arial, Helvetica, sans-serif;}
         .grid table { border-collapse: collapse; text-align: left; width: 100%%; }
@@ -290,29 +304,39 @@ class PyrasiteWindow(Gtk.Window):
         .grid table tbody .alt td { background: #E1EEf4; color: #00557F; }
         .grid table tbody td:first-child { border: none; }
         </style>
+        </head>
+        <body>
 
         <h2>%(title)s</h2>
-        <ul>
-        <li><b>CPU:</b> %(cpu)0.2f%% (%(cpu_user)s user, %(cpu_sys)s system)</li>
-        <li><b>Memory:</b> %(mem)0.2f%% (%(mem_rss)s RSS, %(mem_vms)s VMS)</li>
-        <li><b>Read count:</b> %(read_count)s</li>
-        <li><b>Read bytes:</b> %(read_bytes)s</li>
-        <li><b>Write count:</b> %(write_count)s</li>
-        <li><b>Write bytes:</b> %(write_bytes)s</li>
-        </ul>
-        """ % dict(
-                title = proc.title,
-                cpu = p.get_cpu_percent(interval=1.0),
-                cpu_user = cputimes.user,
-                cpu_sys = cputimes.system,
-                mem = p.get_memory_percent(),
-                mem_rss = humanize_bytes(meminfo.rss),
-                mem_vms = humanize_bytes(meminfo.vms),
-                read_count = io.read_count,
-                read_bytes = humanize_bytes(io.read_bytes),
-                write_count = io.write_count,
-                write_bytes = humanize_bytes(io.write_bytes),
-                )
+        <div class="grid">
+        <table>
+        <thead>
+            <tr><th>CPU: <span id="cpu_details"/></th>
+                <th>Memory: <span id="mem_details"/></th></tr>
+        </thead>
+        <tbody>
+            <tr><td><span id="cpu_graph" class="cpu_graph"></span></td>
+                <td><span id="mem_graph" class="mem_graph"></span></td></tr>
+        </tbody>
+        </table>
+        </div>
+        """ % dict(title = proc.title)
+
+        self.info_html += """
+        <h3>I/O Counters</h3>
+        <div class="grid">
+            <table>
+                <thead><tr><th></th><th>Count</th><th>Size</th></tr></thead>
+                <tbody>
+                    <tr><td>Read</td><td><span id="read_count">%s</span></td>
+                        <td><span id="read_size">%s</span></td></tr>
+                    <tr><td>Write</td><td><span id="write_count">%s</span></td>
+                        <td><span id="write_size">%s</span></td></tr>
+                </tbody>
+            </table>
+        </div>
+        """ % (io.read_count, humanize_bytes(io.read_bytes),
+               io.write_count, humanize_bytes(io.write_bytes))
 
         open_files = p.get_open_files()
         if open_files:
@@ -339,16 +363,12 @@ class PyrasiteWindow(Gtk.Window):
                     <th>Local</th><th>Remote</th><th>Status</th></tr></thead>
                     <tbody>
             """
-            families = dict([(getattr(socket, k), k) for k in dir(socket)
-                             if k.startswith('AF_')])
-            types = dict([(getattr(socket, k), k) for k in dir(socket)
-                          if k.startswith('SOCK_')])
             for i, c in enumerate(conns):
                 self.info_html += """
                 <tr%s><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td>
                 <td>%s</td></tr>
                 """ % (i % 2 and ' class="alt"' or '', c.fd,
-                       families[c.family], types[c.type],
+                       socket_families[c.family], socket_types[c.type],
                        ':'.join(map(str, c.local_address)),
                        ':'.join(map(str, c.remote_address)),
                        c.status)
@@ -371,6 +391,8 @@ class PyrasiteWindow(Gtk.Window):
                 """ % (i % 2 and ' class="alt"' or '', thread.id,
                        thread.user_time, thread.system_time)
             self.info_html += "</tbody></table></div>"
+
+        self.info_html += "</body></html>"
 
         self.info_view.load_string(self.info_html, "text/html", "utf-8", '#')
 
@@ -396,6 +418,42 @@ class PyrasiteWindow(Gtk.Window):
                p.username, p.uids.real, p.gids.real, p.nice)
 
         self.details_view.load_string(self.details_html, "text/html", "utf-8", '#')
+
+        global cpu_intervals, mem_intervals, cpu_details, mem_details
+        cpu_intervals = [p.get_cpu_percent(interval=1.0)]
+        mem_intervals = [p.get_memory_info().rss]
+
+        if not self.resource_thread:
+            self.resource_thread = ResourceUsagePoller(proc.pid)
+            #self.resource_thread.process = p
+            self.resource_thread.daemon = True
+            self.resource_thread.info_view = self.info_view
+            self.resource_thread.start()
+        self.resource_thread.process = p
+
+        def poll_resource_usage():
+            self.info_view.execute_script("""
+                jQuery('#cpu_graph').sparkline(%s, {'height': 50});
+                jQuery('#mem_graph').sparkline(%s, {'height': 50, lineColor: '#f00',
+                    fillColor: '#ffa', minSpotColor: false, maxSpotColor: false,
+                    spotColor: '#77f', spotRadius: 3});
+                jQuery('#cpu_details').text('%s');
+                jQuery('#mem_details').text('%s');
+            """ % (cpu_intervals, mem_intervals, cpu_details, mem_details))
+            return True
+
+        GObject.timeout_add(500, self.inject_js)
+        GObject.timeout_add(3500, poll_resource_usage)
+
+    def inject_js(self):
+        log.debug("Injecting jQuery")
+        js = join(dirname(abspath(__file__)), 'js')
+        jquery = file(join(js, 'jquery-1.7.1.min.js'))
+        self.info_view.execute_script(jquery.read())
+        jquery.close()
+        sparkline = file(join(js, 'jquery.sparkline.min.js'))
+        self.info_view.execute_script(sparkline.read())
+        sparkline.close()
 
     def update_progress(self, fraction, text=None):
         if text:
@@ -603,54 +661,57 @@ class PyrasiteWindow(Gtk.Window):
             end_iter.set_line(erow-1)
             end_iter.set_line_offset(ecol)
 
-        for x in tokenize.generate_tokens(InputStream(data).readline):
-            # x has 5-tuples
-            tok_type, tok_str = x[0], x[1]
-            srow, scol = x[2]
-            erow, ecol = x[3]
+        try:
+            for x in tokenize.generate_tokens(InputStream(data).readline):
+                # x has 5-tuples
+                tok_type, tok_str = x[0], x[1]
+                srow, scol = x[2]
+                erow, ecol = x[3]
 
-            if tok_type == tokenize.COMMENT:
-                prepare_iters()
-                self.source_buffer.apply_tag_by_name('comment', start_iter, end_iter)
-            elif tok_type == tokenize.NAME:
-                if tok_str in keyword.kwlist or tok_str in builtin_constants:
+                if tok_type == tokenize.COMMENT:
                     prepare_iters()
-                    self.source_buffer.apply_tag_by_name('keyword', start_iter, end_iter)
-
-                    if tok_str == 'def' or tok_str == 'class':
-                        # Next token is going to be a function/method/class name
-                        is_func = True
-                        continue
-                elif tok_str == 'self':
-                    prepare_iters()
-                    self.source_buffer.apply_tag_by_name('italic', start_iter, end_iter)
-                else:
-                    if is_func is True:
+                    self.source_buffer.apply_tag_by_name('comment', start_iter, end_iter)
+                elif tok_type == tokenize.NAME:
+                    if tok_str in keyword.kwlist or tok_str in builtin_constants:
                         prepare_iters()
-                        self.source_buffer.apply_tag_by_name('bold', start_iter, end_iter)
-                    elif is_decorator is True:
+                        self.source_buffer.apply_tag_by_name('keyword', start_iter, end_iter)
+
+                        if tok_str == 'def' or tok_str == 'class':
+                            # Next token is going to be a function/method/class name
+                            is_func = True
+                            continue
+                    elif tok_str == 'self':
+                        prepare_iters()
+                        self.source_buffer.apply_tag_by_name('italic', start_iter, end_iter)
+                    else:
+                        if is_func is True:
+                            prepare_iters()
+                            self.source_buffer.apply_tag_by_name('bold', start_iter, end_iter)
+                        elif is_decorator is True:
+                            prepare_iters()
+                            self.source_buffer.apply_tag_by_name('decorator', start_iter, end_iter)
+                elif tok_type == tokenize.STRING:
+                    prepare_iters()
+                    self.source_buffer.apply_tag_by_name('string', start_iter, end_iter)
+                elif tok_type == tokenize.NUMBER:
+                    prepare_iters()
+                    self.source_buffer.apply_tag_by_name('number', start_iter, end_iter)
+                elif tok_type == tokenize.OP:
+                    if tok_str == '@':
                         prepare_iters()
                         self.source_buffer.apply_tag_by_name('decorator', start_iter, end_iter)
-            elif tok_type == tokenize.STRING:
-                prepare_iters()
-                self.source_buffer.apply_tag_by_name('string', start_iter, end_iter)
-            elif tok_type == tokenize.NUMBER:
-                prepare_iters()
-                self.source_buffer.apply_tag_by_name('number', start_iter, end_iter)
-            elif tok_type == tokenize.OP:
-                if tok_str == '@':
-                    prepare_iters()
-                    self.source_buffer.apply_tag_by_name('decorator', start_iter, end_iter)
 
-                    # next token is going to be the decorator name
-                    is_decorator = True
-                    continue
+                        # next token is going to be the decorator name
+                        is_decorator = True
+                        continue
 
-            if is_func is True:
-                is_func = False
+                if is_func is True:
+                    is_func = False
 
-            if is_decorator is True:
-                is_decorator = False
+                if is_decorator is True:
+                    is_decorator = False
+        except Exception, e:
+            log.exception(str(e))
 
     def close(self):
         self.progress.show()
@@ -683,8 +744,43 @@ class InputStream(object):
         return line
 
 
+class ResourceUsagePoller(threading.Thread):
+    """A thread for polling a processes CPU & memory usage"""
+    process = None
+
+    def __init__(self, pid):
+        super(ResourceUsagePoller, self).__init__()
+        self.process = psutil.Process(pid)
+
+    def run(self):
+        global cpu_intervals, mem_intervals, cpu_details, mem_details
+        global read_count, read_bytes, write_count, write_bytes
+        while True:
+            if self.process:
+                if len(cpu_intervals) >= 100:
+                    cpu_intervals = cpu_intervals[1:100]
+                    mem_intervals = mem_intervals[1:100]
+                cpu_intervals.append(
+                    self.process.get_cpu_percent(interval=POLL_INTERVAL))
+                mem_intervals.append(self.process.get_memory_info().rss)
+                cputimes = self.process.get_cpu_times()
+                cpu_details = '%0.2f%% (%s user, %s system)' % (
+                        cpu_intervals[-1], cputimes.user, cputimes.system)
+                meminfo = self.process.get_memory_info()
+                mem_details = '%0.2f%% (%s RSS, %s VMS)' % (
+                        self.process.get_memory_percent(),
+                        humanize_bytes(meminfo.rss),
+                        humanize_bytes(cputimes.system))
+                io = self.process.get_io_counters()
+                read_count = io.read_count
+                read_bytes = humanize_bytes(io.read_bytes)
+                write_count = io.write_count
+                write_bytes = humanize_bytes(io.write_bytes)
+
+
 def main():
     mainloop = GLib.MainLoop()
+    GObject.threads_init()
 
     window = PyrasiteWindow()
     window.show()

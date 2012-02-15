@@ -37,6 +37,11 @@ from pyrasite.utils import setup_logger, run, humanize_bytes
 
 log = logging.getLogger('pyrasite')
 
+socket_families = dict([(getattr(socket, k), k) for k in dir(socket)
+                        if k.startswith('AF_')])
+socket_types = dict([(getattr(socket, k), k) for k in dir(socket)
+                     if k.startswith('SOCK_')])
+
 
 class Process(pyrasite.PyrasiteIPC, GObject.GObject):
     """
@@ -354,16 +359,12 @@ class PyrasiteWindow(Gtk.Window):
                     <th>Local</th><th>Remote</th><th>Status</th></tr></thead>
                     <tbody>
             """
-            families = dict([(getattr(socket, k), k) for k in dir(socket)
-                             if k.startswith('AF_')])
-            types = dict([(getattr(socket, k), k) for k in dir(socket)
-                          if k.startswith('SOCK_')])
             for i, c in enumerate(conns):
                 self.info_html += """
                 <tr%s><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td>
                 <td>%s</td></tr>
                 """ % (i % 2 and ' class="alt"' or '', c.fd,
-                       families[c.family], types[c.type],
+                       socket_families[c.family], socket_types[c.type],
                        ':'.join(map(str, c.local_address)),
                        ':'.join(map(str, c.remote_address)),
                        c.status)

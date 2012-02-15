@@ -30,6 +30,7 @@ import keyword
 import tokenize
 import threading
 
+from os.path import join, abspath, dirname
 from meliae import loader
 from gi.repository import GLib, GObject, Pango, Gtk, WebKit
 
@@ -446,10 +447,11 @@ class PyrasiteWindow(Gtk.Window):
 
     def inject_js(self):
         log.debug("Injecting jQuery")
-        jquery = file('jquery-1.7.1.min.js')
+        js = join(dirname(abspath(__file__)), 'js')
+        jquery = file(join(js, 'jquery-1.7.1.min.js'))
         self.info_view.execute_script(jquery.read())
         jquery.close()
-        sparkline = file('jquery.sparkline.min.js')
+        sparkline = file(join(js, 'jquery.sparkline.min.js'))
         self.info_view.execute_script(sparkline.read())
         sparkline.close()
 

@@ -594,6 +594,8 @@ class PyrasiteWindow(Gtk.Window):
                 self.obj_store.append([str(obj.max_address)] +
                                        map(intify, line.split()[1:]))
 
+        os.unlink('/tmp/%d.objects' % proc.pid)
+
     def dump_stacks(self, proc):
         self.update_progress(0.55, "Dumping stacks")
         payloads = os.path.join(os.path.abspath(os.path.dirname(

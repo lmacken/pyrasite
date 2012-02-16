@@ -4,7 +4,18 @@ Installing
 Requirements
 ~~~~~~~~~~~~
 
- * gdb (https://www.gnu.org/s/gdb) (version 7.3+)
+Core
+----
+
+ * `gdb <https://www.gnu.org/s/gdb>`_ (version 7.3+)
+
+Optional (needed for the GUI)
+-----------------------------
+
+ * python-debuginfo
+ * `meliae <https://launchpad.net/meliae>`_
+ * `pycallgraph <http://pycallgraph.slowchop.com>`_
+ * `psutil <http://code.google.com/p/psutil>`_
 
 Download
 ~~~~~~~~
@@ -25,6 +36,25 @@ You can also fork pyrasite on GitHub: http://github.com/lmacken/pyrasite
 
 Additional installation notes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+Fedora
+------
+
+pyrasite and pycallgraph are currently not available in Fedora. You can run
+pyrasite on Fedora by doing the following:
+
+.. code-block:: bash
+
+   sudo yum -y install python-meliae python-devel python-psutil pygobject3 graphviz
+   sudo yum -y --enablerepo=\*-debuginfo install python-debuginfo
+   git clone -b develop git://git.fedorahosted.org/git/pyrasite
+   cd pyrasite
+   virtualenv [--system-site-packages if on F16+] env
+   source env/bin/activate
+   python setup.py develop
+   pyrasite-gui
+
 
 Mac OS X
 --------

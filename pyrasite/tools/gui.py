@@ -516,6 +516,21 @@ class PyrasiteWindow(Gtk.Window):
         title = model.get_value(treeiter, 0)
         proc = model.get_value(treeiter, 1)
         self.proc = proc
+
+        if self.pid and proc.pid != self.pid:
+            global cpu_intervals, mem_intervals, write_intervals, read_intervals
+            global cpu_details, mem_details, read_count, read_bytes, thread_totals
+            global write_count, write_bytes, thread_intervals, thread_colors
+            cpu_intervals = [0.0]
+            mem_intervals = []
+            write_intervals = []
+            read_intervals = []
+            cpu_details = mem_details = ''
+            read_count = read_bytes = write_count = write_bytes = 0
+            thread_intervals = {}
+            thread_colors = {}
+            thread_totals = {}
+
         self.pid = proc.pid
 
         # Analyze the process

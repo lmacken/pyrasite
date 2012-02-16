@@ -31,6 +31,7 @@ import tokenize
 import threading
 
 from os.path import join, abspath, dirname
+from random import randrange
 from meliae import loader
 from gi.repository import GLib, GObject, Pango, Gtk, WebKit
 
@@ -39,18 +40,31 @@ from pyrasite.utils import setup_logger, run, humanize_bytes
 
 log = logging.getLogger('pyrasite')
 
-socket_families = dict([(getattr(socket, k), k) for k in dir(socket)
-                        if k.startswith('AF_')])
-
-socket_types = dict([(getattr(socket, k), k) for k in dir(socket)
-                     if k.startswith('SOCK_')])
-
-POLL_INTERVAL = 3
+POLL_INTERVAL = 1
+INTERVALS = 200
 cpu_intervals = []
 cpu_details = ''
 mem_intervals = []
 mem_details = ''
+write_intervals = []
+read_intervals = []
 read_count = read_bytes = write_count = write_bytes = 0
+
+# TODO: make sure we flush thread ids when we switch processes
+thread_intervals = {}
+thread_colors = {}
+thread_totals = {}
+
+# Prefer tango colors for our lines. Fall back to random ones.
+tango = ['c4a000', 'ce5c00', '8f5902', '4e9a06', '204a87', '5c3566',
+         'a40000', '555753']
+
+def get_color():
+    used = thread_colors.values()
+    for color in tango:
+        if color not in used:
+            return color
+    return "".join([hex(randrange(0, 255))[2:] for i in range(3)])
 
 
 class Process(pyrasite.PyrasiteIPC, GObject.GObject):
@@ -286,111 +300,114 @@ class PyrasiteWindow(Gtk.Window):
 
     def generate_description(self, proc, title):
         p = psutil.Process(proc.pid)
-        io = p.get_io_counters()
 
         self.info_html = """
         <html><head>
-        <style>
-        body {font: normal 12px/150%% Arial, Helvetica, sans-serif;}
-        .grid table { border-collapse: collapse; text-align: left; width: 100%%; }
-        .grid {font: normal 12px/150%% Arial, Helvetica, sans-serif; background: #fff; overflow: hidden; border: 1px solid #006699; -webkit-border-radius: 3px; border-radius: 3px; }
-        .grid table td, .grid table th { padding: 3px 10px; }
-        .grid table thead th {
-            background:-webkit-gradient( linear, left top, left bottom, color-stop(0.05, #006699), color-stop(1, #00557F) );
-            background-color:#006699; color:#FFFFFF; font-size: 15px;
-            font-weight: bold; border-left: 1px solid #0070A8; }
-        .grid table thead th:first-child { border: none; }
-        .grid table tbody td { color: #00557F; border-left: 1px solid #E1EEF4;font-size: 12px;font-weight: normal; }
-        .grid table tbody .alt td { background: #E1EEf4; color: #00557F; }
-        .grid table tbody td:first-child { border: none; }
-        </style>
+            <style>
+            body {font: normal 12px/150%% Arial, Helvetica, sans-serif;}
+            .grid table { border-collapse: collapse; text-align: left; width: 100%%; }
+            .grid {
+                font: normal 12px/150%% Arial, Helvetica, sans-serif;
+                background: #fff; overflow: hidden; border: 1px solid #2e3436;
+                -webkit-border-radius: 3px; border-radius: 3px;
+            }
+            .grid table td, .grid table th { padding: 3px 10px; }
+            .grid table thead th {
+                background:-webkit-gradient( linear, left top, left bottom, color-stop(0.05, #888a85), color-stop(1, #555753) );
+                background-color:#2e3436; color:#FFFFFF; font-size: 15px;
+                font-weight: bold; border-left: 1px solid #2e3436; }
+            .grid table thead th:first-child { border: none; }
+            .grid table tbody td { color: #2e3436; border-left: 1px solid #2e3436;font-size: 12px;font-weight: normal; }
+            .grid table tbody .alt td { background: #d3d7cf; color: #2e3436; }
+            .grid table tbody td:first-child { border: none; }
+            </style>
         </head>
         <body>
-
-        <h2>%(title)s</h2>
-        <div class="grid">
-        <table>
-        <thead>
-            <tr><th>CPU: <span id="cpu_details"/></th>
-                <th>Memory: <span id="mem_details"/></th></tr>
-        </thead>
-        <tbody>
-            <tr><td><span id="cpu_graph" class="cpu_graph"></span></td>
-                <td><span id="mem_graph" class="mem_graph"></span></td></tr>
-        </tbody>
-        </table>
-        </div>
+            <h2>%(title)s</h2>
+                <div class="grid">
+                <table>
+                    <thead>
+                        <tr><th width="50%%">CPU: <span id="cpu_details"/></th>
+                            <th width="50%%">Memory: <span id="mem_details"/></th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td><span id="cpu_graph" class="cpu_graph"></span></td>
+                            <td><span id="mem_graph" class="mem_graph"></span></td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <br/>
+            <div class="grid">
+                <table>
+                    <thead>
+                        <tr><th width="50%%">Read: <span id="read_details"/></th>
+                            <th width="50%%">Write: <span id="write_details"/></th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td><span id="read_graph"></span></td>
+                            <td><span id="write_graph"></span></td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <br/>
+            <div class="grid">
+                <table>
+                    <thead>
+                        <tr><th>Threads</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td><span id="thread_graph"></span></td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <br/>
         """ % dict(title = proc.title)
-
-        self.info_html += """
-        <h3>I/O Counters</h3>
-        <div class="grid">
-            <table>
-                <thead><tr><th></th><th>Count</th><th>Size</th></tr></thead>
-                <tbody>
-                    <tr><td>Read</td><td><span id="read_count">%s</span></td>
-                        <td><span id="read_size">%s</span></td></tr>
-                    <tr><td>Write</td><td><span id="write_count">%s</span></td>
-                        <td><span id="write_size">%s</span></td></tr>
-                </tbody>
-            </table>
-        </div>
-        """ % (io.read_count, humanize_bytes(io.read_bytes),
-               io.write_count, humanize_bytes(io.write_bytes))
 
         open_files = p.get_open_files()
         if open_files:
             self.info_html += """
-            <h3>Open Files</h3>
             <div class="grid">
                 <table>
-                    <thead><tr><th>fd</th><th>Path</th></tr></thead>
+                    <thead><tr><th>Open Files</th></tr></thead>
                     <tbody>%(open_files)s</tbody>
                 </table>
             </div>
+            <br/>
             """ % dict(
-            open_files = ''.join(['<tr%s><td>%s</td><td>%s</td></tr>' %
-                                  (i % 2 and ' class="alt"' or '',f.fd,f.path)
+            open_files = ''.join(['<tr%s><td>%s</td></tr>' %
+                                  (i % 2 and ' class="alt"' or '', f.path)
                                   for i, f in enumerate(open_files)]))
 
         conns = p.get_connections()
         if conns:
             self.info_html += """
-            <h3>Connections</h3>
             <div class="grid">
                 <table>
-                    <thead><tr><th>fd</th><th>Family</th><th>Type</th>
-                    <th>Local</th><th>Remote</th><th>Status</th></tr></thead>
+                    <thead><tr><th colspan="4">Connections</th></tr></thead>
                     <tbody>
             """
-            for i, c in enumerate(conns):
+            for i, conn in enumerate(conns):
+                if conn.type == socket.SOCK_STREAM:
+                    type = 'TCP'
+                elif conn.type == socket.SOCK_DGRAM:
+                    type = 'UDP'
+                else:
+                    type = 'UNIX'
+                lip, lport = conn.local_address
+                if not conn.remote_address:
+                    rip = rport = '*'
+                else:
+                    rip, rport = conn.remote_address
+
                 self.info_html += """
-                <tr%s><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td>
-                <td>%s</td></tr>
-                """ % (i % 2 and ' class="alt"' or '', c.fd,
-                       socket_families[c.family], socket_types[c.type],
-                       ':'.join(map(str, c.local_address)),
-                       ':'.join(map(str, c.remote_address)),
-                       c.status)
+                <tr%s><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>
+                """ % (i % 2 and ' class="alt"' or '',
+                       type, '%s:%s' % (lip, lport),
+                       '%s:%s' % (rip, rport), conn.status)
+
             self.info_html += """
                 </tbody></table></div>
             """
-
-        threads = p.get_threads()
-        if threads:
-            self.info_html += """
-            <h3>Threads</h3>
-            <div class="grid">
-                <table>
-                    <thead><tr><th>ID</th><th>User Time</th><th>System Time</th>
-                    </tr></thead><tbody>
-            """
-            for i, thread in enumerate(threads):
-                self.info_html += """
-                <tr%s><td>%s</td><td>%s</td><td>%s</td></tr>
-                """ % (i % 2 and ' class="alt"' or '', thread.id,
-                       thread.user_time, thread.system_time)
-            self.info_html += "</tbody></table></div>"
 
         self.info_html += "</body></html>"
 
@@ -419,10 +436,6 @@ class PyrasiteWindow(Gtk.Window):
 
         self.details_view.load_string(self.details_html, "text/html", "utf-8", '#')
 
-        global cpu_intervals, mem_intervals, cpu_details, mem_details
-        cpu_intervals = [p.get_cpu_percent(interval=1.0)]
-        mem_intervals = [p.get_memory_info().rss]
-
         if not self.resource_thread:
             self.resource_thread = ResourceUsagePoller(proc.pid)
             #self.resource_thread.process = p
@@ -431,19 +444,8 @@ class PyrasiteWindow(Gtk.Window):
             self.resource_thread.start()
         self.resource_thread.process = p
 
-        def poll_resource_usage():
-            self.info_view.execute_script("""
-                jQuery('#cpu_graph').sparkline(%s, {'height': 50});
-                jQuery('#mem_graph').sparkline(%s, {'height': 50, lineColor: '#f00',
-                    fillColor: '#ffa', minSpotColor: false, maxSpotColor: false,
-                    spotColor: '#77f', spotRadius: 3});
-                jQuery('#cpu_details').text('%s');
-                jQuery('#mem_details').text('%s');
-            """ % (cpu_intervals, mem_intervals, cpu_details, mem_details))
-            return True
-
-        GObject.timeout_add(500, self.inject_js)
-        GObject.timeout_add(3500, poll_resource_usage)
+        GObject.timeout_add(100, self.inject_js)
+        GObject.timeout_add(3500, self.render_resource_usage)
 
     def inject_js(self):
         log.debug("Injecting jQuery")
@@ -454,6 +456,42 @@ class PyrasiteWindow(Gtk.Window):
         sparkline = file(join(js, 'jquery.sparkline.min.js'))
         self.info_view.execute_script(sparkline.read())
         sparkline.close()
+
+    def render_resource_usage(self):
+        """Render our resource usage using jQuery+Sparklines in our WebKit view"""
+        global cpu_intervals, mem_intervals, cpu_details, mem_details
+        global read_intervals, write_intervals, read_bytes, write_bytes
+        script = """
+            jQuery('#cpu_graph').sparkline(%s, {'height': 75, 'width': 250, spotRadius: 3,
+                fillColor: '#73d216', lineColor: '#4e9a06'});
+            jQuery('#mem_graph').sparkline(%s, {'height': 75, 'width': 250,
+                lineColor: '#5c3566', fillColor: '#75507b', minSpotColor: false,
+                maxSpotColor: false, spotColor: '#f57900', spotRadius: 3});
+            jQuery('#cpu_details').text('%s');
+            jQuery('#mem_details').text('%s');
+            jQuery('#read_graph').sparkline(%s, {'height': 75, 'width': 250,
+                lineColor: '#a40000', fillColor: '#cc0000', minSpotColor: false,
+                maxSpotColor: false, spotColor: '#729fcf', spotRadius: 3});
+            jQuery('#write_graph').sparkline(%s, {'height': 75, 'width': 250,
+                lineColor: '#ce5c00', fillColor: '#f57900', minSpotColor: false,
+                maxSpotColor: false, spotColor: '#8ae234', spotRadius: 3});
+            jQuery('#read_details').text('%s');
+            jQuery('#write_details').text('%s');
+        """ % (cpu_intervals, mem_intervals, cpu_details, mem_details,
+               read_intervals, write_intervals, humanize_bytes(read_bytes),
+               humanize_bytes(write_bytes))
+
+        for i, thread in enumerate(thread_intervals):
+            script += """
+                jQuery('#thread_graph').sparkline(%s, {
+                    %s'lineColor': '#%s', 'fillColor': false, 'spotRadius': 3,
+                    'spotColor': '#%s'});
+            """ % (thread_intervals[thread], i != 0 and "'composite': true,"
+                   or "'height': 75, 'width': 575,", thread_colors[thread],
+                   thread_colors[thread])
+
+        self.info_view.execute_script(script)
+        return True
 
     def update_progress(self, fraction, text=None):
         if text:
@@ -484,7 +522,7 @@ class PyrasiteWindow(Gtk.Window):
         self.generate_description(proc, title)
 
         # Inject a reverse subshell
-        self.update_progress(0.2, "Injecting backdoor")
+        self.update_progress(0.2, "Injecting reverse connection")
         if proc.title not in self.processes:
             proc.connect()
             self.processes[proc.title] = proc
@@ -755,11 +793,15 @@ class ResourceUsagePoller(threading.Thread):
     def run(self):
         global cpu_intervals, mem_intervals, cpu_details, mem_details
         global read_count, read_bytes, write_count, write_bytes
+        global read_intervals, write_intervals, thread_intervals
         while True:
             if self.process:
-                if len(cpu_intervals) >= 100:
-                    cpu_intervals = cpu_intervals[1:100]
-                    mem_intervals = mem_intervals[1:100]
+                if len(cpu_intervals) >= INTERVALS:
+                    cpu_intervals = cpu_intervals[1:INTERVALS]
+                    mem_intervals = mem_intervals[1:INTERVALS]
+                    read_intervals = read_intervals[1:INTERVALS]
+                    write_intervals = write_intervals[1:INTERVALS]
+
                 cpu_intervals.append(
                     self.process.get_cpu_percent(interval=POLL_INTERVAL))
                 mem_intervals.append(self.process.get_memory_info().rss)
@@ -771,16 +813,37 @@ class ResourceUsagePoller(threading.Thread):
                         self.process.get_memory_percent(),
                         humanize_bytes(meminfo.rss),
                         humanize_bytes(cputimes.system))
+
                 io = self.process.get_io_counters()
+                read_since_last = io.read_bytes - read_bytes
+                read_intervals.append(read_since_last)
                 read_count = io.read_count
-                read_bytes = humanize_bytes(io.read_bytes)
+                read_bytes = io.read_bytes
+                write_since_last = io.write_bytes - write_bytes
+                write_intervals.append(write_since_last)
                 write_count = io.write_count
-                write_bytes = humanize_bytes(io.write_bytes)
+                write_bytes = io.write_bytes
+
+                for thread in self.process.get_threads():
+                    if thread.id not in thread_intervals:
+                        thread_intervals[thread.id] = []
+                        thread_colors[thread.id] = get_color()
+                        thread_totals[thread.id] = 0.0
+
+                    if len(thread_intervals[thread.id]) >= INTERVALS:
+                        thread_intervals[thread.id] = thread_intervals[thread.id][1:INTERVALS]
+
+                    # FIXME: we should figure out some way to visually
+                    # distinguish between user and system time.
+                    total = thread.system_time + thread.user_time
+                    amount_since = total - thread_totals[thread.id]
+                    thread_intervals[thread.id].append(float('%.2f' % amount_since))
+                    thread_totals[thread.id] = total
 
 
 def main():
-    mainloop = GLib.MainLoop()
     GObject.threads_init()
+    mainloop = GLib.MainLoop()
 
     window = PyrasiteWindow()
     window.show()

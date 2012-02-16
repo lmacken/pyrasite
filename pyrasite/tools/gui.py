@@ -653,7 +653,7 @@ class PyrasiteWindow(Gtk.Window):
         tree_view.set_headers_visible(False)
         scrolled_window = Gtk.ScrolledWindow(hadjustment = None,
                                              vadjustment = None)
-        scrolled_window.set_policy(Gtk.PolicyType.NEVER,
+        scrolled_window.set_policy(Gtk.PolicyType.AUTOMATIC,
                                    Gtk.PolicyType.AUTOMATIC)
 
         scrolled_window.add(tree_view)
@@ -661,6 +661,7 @@ class PyrasiteWindow(Gtk.Window):
         label = Gtk.Label(label = 'Processes')
 
         box = Gtk.Notebook()
+        box.set_size_request(250, -1)
         box.append_page(scrolled_window, label)
 
         tree_view.grab_focus()

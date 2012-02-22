@@ -46,7 +46,7 @@ pyrasite on Fedora by doing the following:
 
 .. code-block:: bash
 
-   sudo yum -y install python-meliae python-devel python-psutil pygobject3 graphviz
+   sudo yum -y install python-meliae python-devel python-psutil pygobject3 graphviz python-virtualenv git-core gcc
    sudo yum -y --enablerepo=\*-debuginfo install python-debuginfo
    git clone -b develop git://git.fedorahosted.org/git/pyrasite
    cd pyrasite

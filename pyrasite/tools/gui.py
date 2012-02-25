@@ -50,7 +50,6 @@ write_intervals = []
 read_intervals = []
 read_count = read_bytes = write_count = write_bytes = 0
 
-# TODO: make sure we flush thread ids when we switch processes
 thread_intervals = {}
 thread_colors = {}
 thread_totals = {}

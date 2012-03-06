@@ -224,17 +224,16 @@ class PyrasiteWindow(Gtk.Window):
         shell_hbox = Gtk.VBox()
         shell_hbox.pack_start(shell_widget, True, True, 0)
         shell_bottom = Gtk.HBox()
+
         shell_prompt = Gtk.Entry()
         self.shell_prompt = shell_prompt
+        self.shell_prompt.connect('activate', self.run_shell_command)
         shell_bottom.pack_start(shell_prompt, True, True, 0)
+
         self.shell_button = shell_button = Gtk.Button('Run')
         shell_button.connect('clicked', self.run_shell_command)
         shell_bottom.pack_start(shell_button, False, False, 0)
         shell_hbox.pack_end(shell_bottom, False, False, 0)
-
-        # FIXME: this doesn't seem to work
-        self.shell_prompt.set_activates_default(True)
-        self.shell_button.set_receives_default(True)
 
         shell_label = Gtk.Label.new_with_mnemonic('_Shell')
         notebook.append_page(shell_hbox, shell_label)

@@ -40,7 +40,7 @@ from pyrasite.utils import setup_logger, run, humanize_bytes
 
 log = logging.getLogger('pyrasite')
 
-POLL_INTERVAL = 1
+POLL_INTERVAL = 1.0
 INTERVALS = 200
 cpu_intervals = []
 cpu_details = ''
@@ -53,6 +53,9 @@ read_count = read_bytes = write_count = write_bytes = 0
 thread_intervals = {}
 thread_colors = {}
 thread_totals = {}
+
+open_connections = []
+open_files = []
 
 # Prefer tango colors for our lines. Fall back to random ones.
 tango = ['c4a000', 'ce5c00', '8f5902', '4e9a06', '204a87', '5c3566',
@@ -361,53 +364,22 @@ class PyrasiteWindow(Gtk.Window):
             <br/>
         """ % dict(title = proc.title)
 
-        open_files = p.get_open_files()
-        if open_files:
-            self.info_html += """
-            <div class="grid">
-                <table>
-                    <thead><tr><th>Open Files</th></tr></thead>
-                    <tbody>%(open_files)s</tbody>
-                </table>
-            </div>
-            <br/>
-            """ % dict(
-            open_files = ''.join(['<tr%s><td>%s</td></tr>' %
-                                  (i % 2 and ' class="alt"' or '', f.path)
-                                  for i, f in enumerate(open_files)]))
-
-        conns = p.get_connections()
-        if conns:
-            self.info_html += """
-            <div class="grid">
-                <table>
-                    <thead><tr><th colspan="4">Connections</th></tr></thead>
-                    <tbody>
-            """
-            for i, conn in enumerate(conns):
-                if conn.type == socket.SOCK_STREAM:
-                    type = 'TCP'
-                elif conn.type == socket.SOCK_DGRAM:
-                    type = 'UDP'
-                else:
-                    type = 'UNIX'
-                lip, lport = conn.local_address
-                if not conn.remote_address:
-                    rip = rport = '*'
-                else:
-                    rip, rport = conn.remote_address
-
-                self.info_html += """
-                <tr%s><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>
-                """ % (i % 2 and ' class="alt"' or '',
-                       type, '%s:%s' % (lip, lport),
-                       '%s:%s' % (rip, rport), conn.status)
-
-            self.info_html += """
-                </tbody></table></div>
-            """
-
-        self.info_html += "</body></html>"
+        self.info_html += """
+        <div class="grid">
+            <table>
+                <thead><tr><th>Open Files</th></tr></thead>
+                <tbody id="open_files"></tbody>
+            </table>
+        </div>
+        <br/>
+        <div class="grid">
+            <table>
+                <thead><tr><th colspan="4">Connections</th></tr></thead>
+                <tbody id="open_connections"></tbody>
+            </table>
+        </div>
+        </body></html>
+        """
 
         self.info_view.load_string(self.info_html, "text/html", "utf-8", '#')
 
@@ -459,6 +431,7 @@ class PyrasiteWindow(Gtk.Window):
         """Render our resource usage using jQuery+Sparklines in our WebKit view"""
         global cpu_intervals, mem_intervals, cpu_details, mem_details
         global read_intervals, write_intervals, read_bytes, write_bytes
+        global open_files, open_connections
         script = """
             jQuery('#cpu_graph').sparkline(%s, {'height': 75, 'width': 250, spotRadius: 3,
                 fillColor: '#73d216', lineColor: '#4e9a06'});
@@ -487,6 +460,21 @@ class PyrasiteWindow(Gtk.Window):
             """ % (thread_intervals[thread], i != 0 and "'composite': true,"
                    or "'height': 75, 'width': 575,", thread_colors[thread],
                    thread_colors[thread])
+
+        if open_files:
+            script += """
+                jQuery('#open_files').html('%s');
+            """ % ''.join(['<tr%s><td>%s</td></tr>' %
+                           (i % 2 and ' class="alt"' or '', open_file)
+                           for i, open_file in enumerate(open_files)])
+
+        if open_connections:
+            script += """
+                jQuery('#open_connections').html('%s');
+            """ % ''.join(['<tr%s><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>' %
+                           (i % 2 and ' class="alt"' or '', conn['type'], conn['local'],
+                            conn['remote'], conn['status'])
+                           for i, conn in enumerate(open_connections)])
 
         self.info_view.execute_script(script)
         return True
@@ -519,6 +507,7 @@ class PyrasiteWindow(Gtk.Window):
             global cpu_intervals, mem_intervals, write_intervals, read_intervals
             global cpu_details, mem_details, read_count, read_bytes, thread_totals
             global write_count, write_bytes, thread_intervals, thread_colors
+            global open_files, open_connections
             cpu_intervals = [0.0]
             mem_intervals = []
             write_intervals = []
@@ -528,6 +517,8 @@ class PyrasiteWindow(Gtk.Window):
             thread_intervals = {}
             thread_colors = {}
             thread_totals = {}
+            open_connections = []
+            open_files = []
 
         self.pid = proc.pid
 
@@ -810,6 +801,7 @@ class ResourceUsagePoller(threading.Thread):
         global cpu_intervals, mem_intervals, cpu_details, mem_details
         global read_count, read_bytes, write_count, write_bytes
         global read_intervals, write_intervals, thread_intervals
+        global open_files, open_connections
         while True:
             if self.process:
                 if len(cpu_intervals) >= INTERVALS:
@@ -855,6 +847,34 @@ class ResourceUsagePoller(threading.Thread):
                     amount_since = total - thread_totals[thread.id]
                     thread_intervals[thread.id].append(float('%.2f' % amount_since))
                     thread_totals[thread.id] = total
+
+            # Open connections
+            connections = []
+            for i, conn in enumerate(self.process.get_connections()):
+                if conn.type == socket.SOCK_STREAM:
+                    type = 'TCP'
+                elif conn.type == socket.SOCK_DGRAM:
+                    type = 'UDP'
+                else:
+                    type = 'UNIX'
+                lip, lport = conn.local_address
+                if not conn.remote_address:
+                    rip = rport = '*'
+                else:
+                    rip, rport = conn.remote_address
+                connections.append({
+                    'type': type,
+                    'status': conn.status,
+                    'local': '%s:%s' % (lip, lport),
+                    'remote': '%s:%s' % (rip, rport),
+                    })
+            open_connections = connections
+
+            # Open files
+            files = []
+            for open_file in self.process.get_open_files():
+                files.append(open_file.path)
+            open_files = files
 
 
 def main():

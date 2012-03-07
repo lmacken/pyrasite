@@ -294,7 +294,11 @@ class PyrasiteWindow(Gtk.Window):
         addy = model.get_value(treeiter, 0)
         inspector = pyrasite.ObjectInspector(self.pid)
         value = inspector.inspect(addy)
-        self.obj_buffer.set_text(value)
+        if value:
+            self.obj_buffer.set_text(value)
+        else:
+            self.obj_buffer.set_text('Unable to inspect object. Make sure you '
+                    'have the python debugging symbols installed.')
 
     def obj_row_activated_cb(self, *args, **kw):
         log.debug("obj_row_activated_cb(%s, %s)" % (args, kw))

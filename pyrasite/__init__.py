@@ -3,7 +3,7 @@ from inspect import ObjectInspector
 from ipc import PyrasiteIPC
 from reverse import ReverseConnection, ReversePythonConnection
 
-__version__ = '1.99'
+__version__ = '2.0beta'
 __all__ = ('CodeInjector', 'ObjectInspector', 'PyrasiteIPC',
            'ReverseConnection', 'ReversePythonConnection')
 __license__ = """\

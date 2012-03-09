@@ -567,7 +567,7 @@ class PyrasiteWindow(Gtk.Window):
         self.obj_store.clear()
         self.update_progress(0.4, "Loading object dump")
 
-        objects = loader.load('/tmp/%d.objects' % proc.pid)
+        objects = loader.load('/tmp/%d.objects' % proc.pid, show_prog=False)
         objects.compute_referrers()
         self.update_progress(0.45)
         summary = objects.summarize()

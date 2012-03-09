@@ -55,6 +55,12 @@ pyrasite on Fedora by doing the following:
    python setup.py develop
    pyrasite-gui
 
+If you're using Fedora 17 or later, you'll need to disable an SELinux boolean to allow ptrace.
+
+.. code-block:: bash
+
+   sudo setsebool -P deny_ptrace=off
+
 
 Mac OS X
 --------

@@ -766,8 +766,8 @@ class PyrasiteWindow(Gtk.Window):
 
                 if is_decorator is True:
                     is_decorator = False
-        except Exception, e:
-            log.exception(str(e))
+        except tokenize.TokenError:
+            pass
 
     def close(self):
         self.progress.show()

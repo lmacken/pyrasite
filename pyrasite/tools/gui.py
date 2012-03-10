@@ -560,7 +560,9 @@ class PyrasiteWindow(Gtk.Window):
                         "tmp = '/tmp/%d' % os.getpid()",
                         "scanner.dump_all_objects(tmp + '.json')",
                         "shutil.move(tmp + '.json', tmp + '.objects')"])
-        proc.cmd(cmd)
+        output = proc.cmd(cmd)
+        if 'No module named meliae' in output:
+            log.error('Error: %s is unable to import `meliae`' % proc.title.strip())
         self.update_progress(0.35)
 
         # Clear previous model

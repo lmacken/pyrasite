@@ -569,7 +569,12 @@ class PyrasiteWindow(Gtk.Window):
         self.obj_store.clear()
         self.update_progress(0.4, "Loading object dump")
 
-        objects = loader.load('/tmp/%d.objects' % proc.pid, show_prog=False)
+        try:
+            objects = loader.load('/tmp/%d.objects' % proc.pid, show_prog=False)
+        except:
+            log.debug("Falling back to slower meliae object dump loader")
+            objects = loader.load('/tmp/%d.objects' % proc.pid, show_prog=False,
+                                  using_json=False)
         objects.compute_referrers()
         self.update_progress(0.45)
         summary = objects.summarize()

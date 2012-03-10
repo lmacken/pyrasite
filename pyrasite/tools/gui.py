@@ -771,6 +771,9 @@ class PyrasiteWindow(Gtk.Window):
         for process in self.processes.values():
             self.update_progress(None)
             process.close()
+            callgraph = '/tmp/%d-callgraph.png' % process.pid
+            if os.path.exists(callgraph):
+                os.unlink(callgraph)
 
 
 class InputStream(object):

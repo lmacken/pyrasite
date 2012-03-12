@@ -50,8 +50,21 @@ class ReverseConnection(threading.Thread, PyrasiteIPC):
         running = True
         while running:
             try:
-                self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                self.sock.connect((self.host, self.port))
+                for res in socket.getaddrinfo(self.host, self.port, socket.AF_UNSPEC, socket.SOCK_STREAM):
+                    af, socktype, proto, canonname, sa = res
+                    try:
+                        self.sock = socket.socket(af, socktype, proto)
+                    except socket.error, msg:
+                        self.sock = None
+                        continue
+                    try:
+                        self.sock.connect(sa)
+                    except socket.error, msg:
+                        self.sock.close()
+                        self.sock = None
+                        continue
+                    break
+
                 self.on_connect()
                 while running:
                     cmd = self.recv()

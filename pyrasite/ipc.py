@@ -74,17 +74,18 @@ class PyrasiteIPC(object):
 
     def listen(self):
         """Listen on a random port"""
-        for res in socket.getaddrinfo('localhost', None, socket.AF_UNSPEC, socket.SOCK_STREAM, 0, 0):
+        for res in socket.getaddrinfo('localhost', None, socket.AF_UNSPEC,
+                                      socket.SOCK_STREAM, 0, 0):
             af, socktype, proto, canonname, sa = res
             try:
                 self.server_sock = socket.socket(af, socktype, proto)
-            except socket.error, msg:
+            except socket.error:
                 self.server_sock = None
                 continue
             try:
                 self.server_sock.bind(sa)
                 self.server_sock.listen(1)
-            except socket.error, msg:
+            except socket.error:
                 self.server_sock.close()
                 self.server_sock = None
                 continue

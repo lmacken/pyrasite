@@ -29,7 +29,7 @@ from pyrasite.ipc import PyrasiteIPC
 class ReverseConnection(threading.Thread, PyrasiteIPC):
     """A payload that connects to a given host:port and receives commands"""
 
-    host = '127.0.0.1'
+    host = 'localhost'
     port = 9001
 
     def __init__(self, host=None, port=None):

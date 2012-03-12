@@ -156,6 +156,11 @@ Mailing List
 
 https://fedorahosted.org/mailman/listinfo/pyrasite
 
+IRC
+~~~
+
+#pyrasite on Freenode.
+
 Authors
 ~~~~~~~
 

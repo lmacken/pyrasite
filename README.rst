@@ -147,7 +147,7 @@ Since version 10.10, Ubuntu ships with a `controversial patch <https://lkml.org/
 
 ::
 
-    echo 0 > /proc/sys/kernel/yama/ptrace_scope
+    echo 0 | sudo tee /proc/sys/kernel/yama/ptrace_scope
 
 
 

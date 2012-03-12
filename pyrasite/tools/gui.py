@@ -419,7 +419,7 @@ class PyrasiteWindow(Gtk.Window):
         self.resource_thread.process = p
 
         GObject.timeout_add(100, self.inject_js)
-        GObject.timeout_add(3500, self.render_resource_usage)
+        GObject.timeout_add(int(POLL_INTERVAL * 1000), self.render_resource_usage)
 
     def inject_js(self):
         log.debug("Injecting jQuery")

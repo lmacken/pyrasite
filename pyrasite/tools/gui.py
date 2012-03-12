@@ -92,7 +92,7 @@ class ProcessTreeStore(Gtk.TreeStore):
                 proc = Process(pid)
                 try:
                     maps = open('/proc/%d/maps' % pid).read().strip()
-                    if 'python' in maps:
+                    if 'libpython' in maps:
                         self.append(None, (proc.title.strip(), proc,
                                            Pango.Style.NORMAL))
                 except IOError:

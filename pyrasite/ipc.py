@@ -27,6 +27,7 @@ import pyrasite
 
 from os.path import dirname, abspath, join
 
+
 class PyrasiteIPC(object):
     """Pyrasite Inter-Python Communication.
 
@@ -130,7 +131,9 @@ class PyrasiteIPC(object):
         self.address = address
 
     def cmd(self, cmd):
-        """Send a python command to exec in the process and return the output"""
+        """
+        Send a python command to exec in the process and return the output
+        """
         self.send(cmd + '\n')
         return self.recv()
 

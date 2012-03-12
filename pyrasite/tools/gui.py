@@ -61,6 +61,7 @@ open_files = []
 tango = ['c4a000', 'ce5c00', '8f5902', '4e9a06', '204a87', '5c3566',
          'a40000', '555753']
 
+
 def get_color():
     used = thread_colors.values()
     for color in tango:
@@ -71,7 +72,8 @@ def get_color():
 
 class Process(pyrasite.PyrasiteIPC, GObject.GObject):
     """
-    A :class:`GObject.GObject` subclass for use in the :class:`ProcessTreeStore`
+    A :class:`GObject.GObject` subclass that represents a Process, for use in
+    the :class:`ProcessTreeStore`
     """
 
     @property
@@ -107,11 +109,11 @@ class PyrasiteWindow(Gtk.Window):
         super(PyrasiteWindow, self).__init__(type=Gtk.WindowType.TOPLEVEL)
 
         self.processes = {}
-        self.pid = None # Currently selected pid
+        self.pid = None  # Currently selected pid
         self.resource_thread = None
 
         self.set_title('Pyrasite v%s' % pyrasite.__version__)
-        self.set_default_size (600, 400)
+        self.set_default_size(600, 400)
 
         hbox = Gtk.HBox(homogeneous=False, spacing=0)
         self.add(hbox)
@@ -131,15 +133,16 @@ class PyrasiteWindow(Gtk.Window):
         self.info_view = WebKit.WebView()
         self.info_view.load_string(self.info_html, "text/html", "utf-8", '#')
 
-        info_window = Gtk.ScrolledWindow(hadjustment = None,
-                                         vadjustment = None)
+        info_window = Gtk.ScrolledWindow(hadjustment=None, vadjustment=None)
         info_window.set_policy(Gtk.PolicyType.AUTOMATIC,
                                Gtk.PolicyType.AUTOMATIC)
         info_window.add(self.info_view)
-        notebook.append_page(info_window, Gtk.Label.new_with_mnemonic('_Resources'))
+        notebook.append_page(info_window,
+                Gtk.Label.new_with_mnemonic('_Resources'))
 
         (stacks_widget, source_buffer) = self.create_text(True)
-        notebook.append_page(stacks_widget, Gtk.Label.new_with_mnemonic('_Stacks'))
+        notebook.append_page(stacks_widget,
+                Gtk.Label.new_with_mnemonic('_Stacks'))
 
         self.source_buffer = source_buffer
         self.source_buffer.create_tag('bold', weight=Pango.Weight.BOLD)
@@ -161,27 +164,27 @@ class PyrasiteWindow(Gtk.Window):
         obj_tree.set_size_request(200, -1)
 
         columns = [
-            Gtk.TreeViewColumn(title = 'Count',
-                               cell_renderer = Gtk.CellRendererText(),
-                               text = 1, style = 2),
-            Gtk.TreeViewColumn(title = '%',
-                               cell_renderer = Gtk.CellRendererText(),
-                               text = 2, style = 2),
-            Gtk.TreeViewColumn(title = 'Size',
-                               cell_renderer = Gtk.CellRendererText(),
-                               text = 3, style = 2),
-            Gtk.TreeViewColumn(title = '%',
-                               cell_renderer = Gtk.CellRendererText(),
-                               text = 4, style = 2),
-            Gtk.TreeViewColumn(title = 'Cumulative',
-                               cell_renderer = Gtk.CellRendererText(),
-                               text = 5, style = 2),
-            Gtk.TreeViewColumn(title = 'Max',
-                               cell_renderer = Gtk.CellRendererText(),
-                               text = 6, style = 2),
-            Gtk.TreeViewColumn(title = 'Kind',
-                               cell_renderer = Gtk.CellRendererText(),
-                               text = 7, style = 2),
+            Gtk.TreeViewColumn(title='Count',
+                               cell_renderer=Gtk.CellRendererText(),
+                               text=1, style=2),
+            Gtk.TreeViewColumn(title='%',
+                               cell_renderer=Gtk.CellRendererText(),
+                               text=2, style=2),
+            Gtk.TreeViewColumn(title='Size',
+                               cell_renderer=Gtk.CellRendererText(),
+                               text=3, style=2),
+            Gtk.TreeViewColumn(title='%',
+                               cell_renderer=Gtk.CellRendererText(),
+                               text=4, style=2),
+            Gtk.TreeViewColumn(title='Cumulative',
+                               cell_renderer=Gtk.CellRendererText(),
+                               text=5, style=2),
+            Gtk.TreeViewColumn(title='Max',
+                               cell_renderer=Gtk.CellRendererText(),
+                               text=6, style=2),
+            Gtk.TreeViewColumn(title='Kind',
+                               cell_renderer=Gtk.CellRendererText(),
+                               text=7, style=2),
             ]
 
         first_iter = obj_store.get_iter_first()
@@ -198,8 +201,8 @@ class PyrasiteWindow(Gtk.Window):
         obj_tree.collapse_all()
         obj_tree.set_headers_visible(True)
 
-        scrolled_window = Gtk.ScrolledWindow(hadjustment = None,
-                                             vadjustment = None)
+        scrolled_window = Gtk.ScrolledWindow(hadjustment=None,
+                                             vadjustment=None)
         scrolled_window.set_policy(Gtk.PolicyType.NEVER,
                                    Gtk.PolicyType.AUTOMATIC)
         scrolled_window.add(obj_tree)
@@ -220,7 +223,8 @@ class PyrasiteWindow(Gtk.Window):
 
         notebook.append_page(hbox, Gtk.Label.new_with_mnemonic('_Objects'))
 
-        (shell_view, shell_widget, shell_buffer) = self.create_text(False, return_view=True)
+        (shell_view, shell_widget, shell_buffer) = \
+                self.create_text(False, return_view=True)
         self.shell_view = shell_view
         self.shell_buffer = shell_buffer
         self.shell_widget = shell_widget
@@ -246,25 +250,28 @@ class PyrasiteWindow(Gtk.Window):
         self.notebook = notebook
 
         self.call_graph = Gtk.Image()
-        scrolled_window = Gtk.ScrolledWindow(hadjustment = None,
-                                             vadjustment = None)
+        scrolled_window = Gtk.ScrolledWindow(hadjustment=None,
+                                             vadjustment=None)
         scrolled_window.set_policy(Gtk.PolicyType.ALWAYS,
                                    Gtk.PolicyType.ALWAYS)
 
         scrolled_window.add_with_viewport(self.call_graph)
 
-        notebook.append_page(scrolled_window, Gtk.Label.new_with_mnemonic('_Call Graph'))
+        notebook.append_page(scrolled_window,
+                Gtk.Label.new_with_mnemonic('_Call Graph'))
 
         self.details_html = ''
         self.details_view = WebKit.WebView()
-        self.details_view.load_string(self.details_html, "text/html", "utf-8", '#')
+        self.details_view.load_string(self.details_html, "text/html",
+                                      "utf-8", '#')
 
-        details_window = Gtk.ScrolledWindow(hadjustment = None,
-                                         vadjustment = None)
+        details_window = Gtk.ScrolledWindow(hadjustment=None,
+                                            vadjustment=None)
         details_window.set_policy(Gtk.PolicyType.AUTOMATIC,
                                Gtk.PolicyType.AUTOMATIC)
         details_window.add(self.details_view)
-        notebook.append_page(details_window, Gtk.Label.new_with_mnemonic('_Details'))
+        notebook.append_page(details_window,
+                Gtk.Label.new_with_mnemonic('_Details'))
 
         self.show_all()
         self.progress.hide()
@@ -286,7 +293,7 @@ class PyrasiteWindow(Gtk.Window):
 
         insert_mark = self.shell_buffer.get_insert()
         self.shell_buffer.place_cursor(self.shell_buffer.get_end_iter())
-        self.shell_view.scroll_to_mark(insert_mark , 0.0, True, 0.0, 1.0)
+        self.shell_view.scroll_to_mark(insert_mark, 0.0, True, 0.0, 1.0)
 
     def obj_selection_cb(self, selection, model):
         sel = selection.get_selected()
@@ -310,7 +317,11 @@ class PyrasiteWindow(Gtk.Window):
         <html><head>
             <style>
             body {font: normal 12px/150%% Arial, Helvetica, sans-serif;}
-            .grid table { border-collapse: collapse; text-align: left; width: 100%%; }
+            .grid table {
+                border-collapse: collapse;
+                text-align: left;
+                width: 100%%;
+            }
             .grid {
                 font: normal 12px/150%% Arial, Helvetica, sans-serif;
                 background: #fff; overflow: hidden; border: 1px solid #2e3436;
@@ -318,11 +329,18 @@ class PyrasiteWindow(Gtk.Window):
             }
             .grid table td, .grid table th { padding: 3px 10px; }
             .grid table thead th {
-                background:-webkit-gradient( linear, left top, left bottom, color-stop(0.05, #888a85), color-stop(1, #555753) );
+                background:-webkit-gradient(linear, left top, left bottom,
+                                            color-stop(0.05, #888a85),
+                                            color-stop(1, #555753) );
                 background-color:#2e3436; color:#FFFFFF; font-size: 15px;
                 font-weight: bold; border-left: 1px solid #2e3436; }
             .grid table thead th:first-child { border: none; }
-            .grid table tbody td { color: #2e3436; border-left: 1px solid #2e3436;font-size: 12px;font-weight: normal; }
+            .grid table tbody td {
+                color: #2e3436;
+                border-left: 1px solid #2e3436;
+                font-size: 12px;
+                font-weight: normal;
+            }
             .grid table tbody .alt td { background: #d3d7cf; color: #2e3436; }
             .grid table tbody td:first-child { border: none; }
             </style>
@@ -331,23 +349,29 @@ class PyrasiteWindow(Gtk.Window):
             <h2>%(title)s</h2>
                 <div class="grid">
                 <table>
-                    <thead>
-                        <tr><th width="50%%">CPU: <span id="cpu_details"/></th>
-                            <th width="50%%">Memory: <span id="mem_details"/></th></tr>
-                    </thead>
+                    <thead><tr>
+                        <th width="50%%">CPU: <span id="cpu_details"/></th>
+                        <th width="50%%">Memory: <span id="mem_details"/></th>
+                    </tr></thead>
                     <tbody>
-                        <tr><td><span id="cpu_graph" class="cpu_graph"></span></td>
-                            <td><span id="mem_graph" class="mem_graph"></span></td></tr>
+                        <tr>
+                            <td>
+                                <span id="cpu_graph" class="cpu_graph"></span>
+                            </td>
+                            <td>
+                                <span id="mem_graph" class="mem_graph"></span>
+                            </td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
             <br/>
             <div class="grid">
                 <table>
-                    <thead>
-                        <tr><th width="50%%">Read: <span id="read_details"/></th>
-                            <th width="50%%">Write: <span id="write_details"/></th></tr>
-                    </thead>
+                    <thead><tr>
+                        <th width="50%%">Read: <span id="read_details"/></th>
+                        <th width="50%%">Write: <span id="write_details"/></th>
+                    </tr></thead>
                     <tbody>
                         <tr><td><span id="read_graph"></span></td>
                             <td><span id="write_graph"></span></td></tr>
@@ -366,7 +390,7 @@ class PyrasiteWindow(Gtk.Window):
                 </table>
             </div>
             <br/>
-        """ % dict(title = proc.title)
+        """ % dict(title=proc.title)
 
         self.info_html += """
         <div class="grid">
@@ -408,7 +432,8 @@ class PyrasiteWindow(Gtk.Window):
                p.terminal, time.ctime(p.create_time),
                p.username, p.uids.real, p.gids.real, p.nice)
 
-        self.details_view.load_string(self.details_html, "text/html", "utf-8", '#')
+        self.details_view.load_string(self.details_html, "text/html",
+                                      "utf-8", '#')
 
         if not self.resource_thread:
             self.resource_thread = ResourceUsagePoller(proc.pid)
@@ -419,7 +444,8 @@ class PyrasiteWindow(Gtk.Window):
         self.resource_thread.process = p
 
         GObject.timeout_add(100, self.inject_js)
-        GObject.timeout_add(int(POLL_INTERVAL * 1000), self.render_resource_usage)
+        GObject.timeout_add(int(POLL_INTERVAL * 1000),
+                            self.render_resource_usage)
 
     def inject_js(self):
         log.debug("Injecting jQuery")
@@ -432,24 +458,29 @@ class PyrasiteWindow(Gtk.Window):
         sparkline.close()
 
     def render_resource_usage(self):
-        """Render our resource usage using jQuery+Sparklines in our WebKit view"""
+        """
+        Render our resource usage using jQuery+Sparklines in our WebKit view
+        """
         global cpu_intervals, mem_intervals, cpu_details, mem_details
         global read_intervals, write_intervals, read_bytes, write_bytes
         global open_files, open_connections
         script = """
-            jQuery('#cpu_graph').sparkline(%s, {'height': 75, 'width': 250, spotRadius: 3,
-                fillColor: '#73d216', lineColor: '#4e9a06'});
+            jQuery('#cpu_graph').sparkline(%s, {'height': 75, 'width': 250,
+                spotRadius: 3, fillColor: '#73d216', lineColor: '#4e9a06'});
             jQuery('#mem_graph').sparkline(%s, {'height': 75, 'width': 250,
-                lineColor: '#5c3566', fillColor: '#75507b', minSpotColor: false,
-                maxSpotColor: false, spotColor: '#f57900', spotRadius: 3});
+                lineColor: '#5c3566', fillColor: '#75507b',
+                minSpotColor: false, maxSpotColor: false, spotColor: '#f57900',
+                spotRadius: 3});
             jQuery('#cpu_details').text('%s');
             jQuery('#mem_details').text('%s');
             jQuery('#read_graph').sparkline(%s, {'height': 75, 'width': 250,
-                lineColor: '#a40000', fillColor: '#cc0000', minSpotColor: false,
-                maxSpotColor: false, spotColor: '#729fcf', spotRadius: 3});
+                lineColor: '#a40000', fillColor: '#cc0000',
+                minSpotColor: false, maxSpotColor: false, spotColor: '#729fcf',
+                spotRadius: 3});
             jQuery('#write_graph').sparkline(%s, {'height': 75, 'width': 250,
-                lineColor: '#ce5c00', fillColor: '#f57900', minSpotColor: false,
-                maxSpotColor: false, spotColor: '#8ae234', spotRadius: 3});
+                lineColor: '#ce5c00', fillColor: '#f57900',
+                minSpotColor: false, maxSpotColor: false, spotColor: '#8ae234',
+                spotRadius: 3});
             jQuery('#read_details').text('%s');
             jQuery('#write_details').text('%s');
         """ % (cpu_intervals, mem_intervals, cpu_details, mem_details,
@@ -473,11 +504,12 @@ class PyrasiteWindow(Gtk.Window):
                            for i, open_file in enumerate(open_files)])
 
         if open_connections:
+            row = '<tr%s><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>'
             script += """
                 jQuery('#open_connections').html('%s');
-            """ % ''.join(['<tr%s><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>' %
-                           (i % 2 and ' class="alt"' or '', conn['type'], conn['local'],
-                            conn['remote'], conn['status'])
+            """ % ''.join([row % (i % 2 and ' class="alt"' or '',
+                                  conn['type'], conn['local'],
+                                  conn['remote'], conn['status'])
                            for i, conn in enumerate(open_connections)])
 
         self.info_view.execute_script(script)
@@ -508,10 +540,11 @@ class PyrasiteWindow(Gtk.Window):
         self.proc = proc
 
         if self.pid and proc.pid != self.pid:
-            global cpu_intervals, mem_intervals, write_intervals, read_intervals
-            global cpu_details, mem_details, read_count, read_bytes, thread_totals
-            global write_count, write_bytes, thread_intervals, thread_colors
-            global open_files, open_connections
+            global cpu_intervals, mem_intervals, write_intervals, \
+                   read_intervals, cpu_details, mem_details, read_count, \
+                   read_bytes, thread_totals, write_count, write_bytes, \
+                   thread_intervals, thread_colors, open_files, \
+                   open_connections
             cpu_intervals = [0.0]
             mem_intervals = []
             write_intervals = []
@@ -562,7 +595,8 @@ class PyrasiteWindow(Gtk.Window):
                         "shutil.move(tmp + '.json', tmp + '.objects')"])
         output = proc.cmd(cmd)
         if 'No module named meliae' in output:
-            log.error('Error: %s is unable to import `meliae`' % proc.title.strip())
+            log.error('Error: %s is unable to import `meliae`' %
+                      proc.title.strip())
         self.update_progress(0.35)
 
         # Clear previous model
@@ -570,25 +604,28 @@ class PyrasiteWindow(Gtk.Window):
         self.update_progress(0.4, "Loading object dump")
 
         try:
-            objects = loader.load('/tmp/%d.objects' % proc.pid, show_prog=False)
+            objects = loader.load('/tmp/%d.objects' % proc.pid,
+                                  show_prog=False)
         except:
             log.debug("Falling back to slower meliae object dump loader")
-            objects = loader.load('/tmp/%d.objects' % proc.pid, show_prog=False,
-                                  using_json=False)
+            objects = loader.load('/tmp/%d.objects' % proc.pid,
+                                  show_prog=False, using_json=False)
         objects.compute_referrers()
         self.update_progress(0.45)
         summary = objects.summarize()
         self.update_progress(0.47)
 
         def intify(x):
-            try: return int(x)
-            except: return x
+            try:
+                return int(x)
+            except:
+                return x
 
         for i, line in enumerate(str(summary).split('\n')):
             if i == 0:
                 self.obj_totals.set_text(line)
             elif i == 1:
-                continue # column headers
+                continue  # column headers
             else:
                 obj = summary.summaries[i - 2]
                 self.obj_store.append([str(obj.max_address)] +
@@ -613,10 +650,11 @@ class PyrasiteWindow(Gtk.Window):
         self.update_progress(0.7, "Tracing call stack")
         proc.cmd('import pycallgraph; pycallgraph.start_trace()')
         self.update_progress(0.8)
-        time.sleep(1) # TODO: make this configurable in the UI
+        time.sleep(1)  # TODO: make this configurable in the UI
         self.update_progress(0.9, "Generating call stack graph")
         image = '/tmp/%d-callgraph.png' % proc.pid
-        proc.cmd('import pycallgraph; pycallgraph.make_dot_graph("%s")' % image)
+        proc.cmd('import pycallgraph; pycallgraph.make_dot_graph("%s")' %
+                 image)
         self.call_graph.set_from_file(image)
 
     def row_activated_cb(self, view, path, col, store):
@@ -635,10 +673,8 @@ class PyrasiteWindow(Gtk.Window):
         tree_view.set_size_request(200, -1)
 
         cell = Gtk.CellRendererText()
-        column = Gtk.TreeViewColumn(title = 'Processes',
-                                    cell_renderer = cell,
-                                    text = 0,
-                                    style = 2)
+        column = Gtk.TreeViewColumn(title='Processes', cell_renderer=cell,
+                                    text=0, style=2)
 
         first_iter = tree_store.get_iter_first()
         if first_iter is not None:
@@ -651,14 +687,14 @@ class PyrasiteWindow(Gtk.Window):
 
         tree_view.collapse_all()
         tree_view.set_headers_visible(False)
-        scrolled_window = Gtk.ScrolledWindow(hadjustment = None,
-                                             vadjustment = None)
+        scrolled_window = Gtk.ScrolledWindow(hadjustment=None,
+                                             vadjustment=None)
         scrolled_window.set_policy(Gtk.PolicyType.AUTOMATIC,
                                    Gtk.PolicyType.AUTOMATIC)
 
         scrolled_window.add(tree_view)
 
-        label = Gtk.Label(label = 'Processes')
+        label = Gtk.Label(label='Processes')
 
         box = Gtk.Notebook()
         box.set_size_request(250, -1)
@@ -669,8 +705,8 @@ class PyrasiteWindow(Gtk.Window):
         return box
 
     def create_text(self, is_source, return_view=False):
-        scrolled_window = Gtk.ScrolledWindow(hadjustment = None,
-                                             vadjustment = None)
+        scrolled_window = Gtk.ScrolledWindow(hadjustment=None,
+                                             vadjustment=None)
         scrolled_window.set_policy(Gtk.PolicyType.AUTOMATIC,
                                    Gtk.PolicyType.AUTOMATIC)
         scrolled_window.set_shadow_type(Gtk.ShadowType.IN)
@@ -712,9 +748,9 @@ class PyrasiteWindow(Gtk.Window):
         is_func = False
 
         def prepare_iters():
-            start_iter.set_line(srow-1)
+            start_iter.set_line(srow - 1)
             start_iter.set_line_offset(scol)
-            end_iter.set_line(erow-1)
+            end_iter.set_line(erow - 1)
             end_iter.set_line_offset(ecol)
 
         try:
@@ -726,36 +762,50 @@ class PyrasiteWindow(Gtk.Window):
 
                 if tok_type == tokenize.COMMENT:
                     prepare_iters()
-                    self.source_buffer.apply_tag_by_name('comment', start_iter, end_iter)
+                    self.source_buffer.apply_tag_by_name('comment', start_iter,
+                                                         end_iter)
                 elif tok_type == tokenize.NAME:
-                    if tok_str in keyword.kwlist or tok_str in builtin_constants:
+                    if (tok_str in keyword.kwlist or
+                        tok_str in builtin_constants):
                         prepare_iters()
-                        self.source_buffer.apply_tag_by_name('keyword', start_iter, end_iter)
-
+                        self.source_buffer.apply_tag_by_name('keyword',
+                                                             start_iter,
+                                                             end_iter)
                         if tok_str == 'def' or tok_str == 'class':
-                            # Next token is going to be a function/method/class name
+                            # Next token is going to be a
+                            # function/method/class name
                             is_func = True
                             continue
                     elif tok_str == 'self':
                         prepare_iters()
-                        self.source_buffer.apply_tag_by_name('italic', start_iter, end_iter)
+                        self.source_buffer.apply_tag_by_name('italic',
+                                                             start_iter,
+                                                             end_iter)
                     else:
                         if is_func is True:
                             prepare_iters()
-                            self.source_buffer.apply_tag_by_name('bold', start_iter, end_iter)
+                            self.source_buffer.apply_tag_by_name('bold',
+                                                                 start_iter,
+                                                                 end_iter)
                         elif is_decorator is True:
                             prepare_iters()
-                            self.source_buffer.apply_tag_by_name('decorator', start_iter, end_iter)
+                            self.source_buffer.apply_tag_by_name('decorator',
+                                                                 start_iter,
+                                                                 end_iter)
                 elif tok_type == tokenize.STRING:
                     prepare_iters()
-                    self.source_buffer.apply_tag_by_name('string', start_iter, end_iter)
+                    self.source_buffer.apply_tag_by_name('string', start_iter,
+                                                         end_iter)
                 elif tok_type == tokenize.NUMBER:
                     prepare_iters()
-                    self.source_buffer.apply_tag_by_name('number', start_iter, end_iter)
+                    self.source_buffer.apply_tag_by_name('number', start_iter,
+                                                         end_iter)
                 elif tok_type == tokenize.OP:
                     if tok_str == '@':
                         prepare_iters()
-                        self.source_buffer.apply_tag_by_name('decorator', start_iter, end_iter)
+                        self.source_buffer.apply_tag_by_name('decorator',
+                                                             start_iter,
+                                                             end_iter)
 
                         # next token is going to be the decorator name
                         is_decorator = True
@@ -789,7 +839,7 @@ class InputStream(object):
     function isn't used in such a context. (see <python-lib>/tokenize.py)
     '''
     def __init__(self, data):
-        self.__data = [ '%s\n' % x for x in data.splitlines() ]
+        self.__data = ['%s\n' % x for x in data.splitlines()]
         self.__lcount = 0
 
     def readline(self):
@@ -853,13 +903,15 @@ class ResourceUsagePoller(threading.Thread):
                         thread_totals[thread.id] = 0.0
 
                     if len(thread_intervals[thread.id]) >= INTERVALS:
-                        thread_intervals[thread.id] = thread_intervals[thread.id][1:INTERVALS]
+                        thread_intervals[thread.id] = \
+                                thread_intervals[thread.id][1:INTERVALS]
 
                     # FIXME: we should figure out some way to visually
                     # distinguish between user and system time.
                     total = thread.system_time + thread.user_time
                     amount_since = total - thread_totals[thread.id]
-                    thread_intervals[thread.id].append(float('%.2f' % amount_since))
+                    thread_intervals[thread.id].append(
+                            float('%.2f' % amount_since))
                     thread_totals[thread.id] = total
 
             # Open connections

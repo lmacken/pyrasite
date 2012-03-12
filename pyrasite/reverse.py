@@ -26,6 +26,7 @@ import threading
 from StringIO import StringIO
 from pyrasite.ipc import PyrasiteIPC
 
+
 class ReverseConnection(threading.Thread, PyrasiteIPC):
     """A payload that connects to a given host:port and receives commands"""
 

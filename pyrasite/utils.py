@@ -2,14 +2,15 @@
 
 from __future__ import division
 
+
 def humanize_bytes(bytes, precision=1):
     """Return a humanized string representation of a number of bytes."""
     abbrevs = (
-        (1<<50L, 'PB'),
-        (1<<40L, 'TB'),
-        (1<<30L, 'GB'),
-        (1<<20L, 'MB'),
-        (1<<10L, 'kB'),
+        (1 << 50L, 'PB'),
+        (1 << 40L, 'TB'),
+        (1 << 30L, 'GB'),
+        (1 << 20L, 'MB'),
+        (1 << 10L, 'kB'),
         (1, 'bytes')
     )
     if bytes == 1:
@@ -40,6 +41,7 @@ def humanize_bytes(bytes, precision=1):
 import logging
 import subprocess
 
+
 def run(*args, **kwargs):
     """Run a subprocess.
 
@@ -54,8 +56,10 @@ def run(*args, **kwargs):
 
     :param args: arguments to be passed to :class:`subprocess.Popen`.
     :param kwargs: keyword arguments to be passed to :class:`subprocess.Popen`.
-    :param communicate: if True, call :meth:`subprocess.Popen.communicate` after creating the subprocess.
-    :param executable: if present, the path to a program to execute instead of this script.
+    :param communicate: if True, call :meth:`subprocess.Popen.communicate`
+        after creating the subprocess.
+    :param executable: if present, the path to a program to execute instead of
+        this script.
     """
     _kwargs = {
         "stdin": subprocess.PIPE,
@@ -82,7 +86,8 @@ def setup_logger(verbose=False):
         NullHandler = logging.NullHandler
     except AttributeError:
         class NullHandler(logging.Handler):
-            def emit(self, record): pass
+            def emit(self, record):
+                pass
 
     # Add a do-nothing NullHandler to the module logger to prevent "No handlers
     # could be found" errors. The calling code can still add other, more useful

@@ -33,6 +33,7 @@ from meliae import loader
 
 from pyrasite.inspect import ObjectInspector
 
+
 class PyrasiteMemoryViewer(object):
     palette = [
         ('body',            'black',        'light gray', 'standout'),
@@ -75,8 +76,9 @@ class PyrasiteMemoryViewer(object):
             if i in (0, 1):
                 rb = self.create_disabled_radio_button(line)
             else:
-                obj = self.summary.summaries[i-2]
-                rb = self.create_radio_button(group, line, obj, self.display_object)
+                obj = self.summary.summaries[i - 2]
+                rb = self.create_radio_button(group, line, obj,
+                                              self.display_object)
             buttons.append(rb)
         return buttons
 
@@ -107,7 +109,7 @@ class PyrasiteMemoryViewer(object):
         w = urwid.Frame(header=bt, body=w)
 
         # Exit message
-        exit = urwid.BigText(('exit'," Quit? "), urwid.Thin6x6Font())
+        exit = urwid.BigText(('exit', " Quit? "), urwid.Thin6x6Font())
         exit = urwid.Overlay(exit, w, 'center', None, 'middle', None)
 
         return w, exit

@@ -15,18 +15,21 @@
 #
 # Copyright (C) 2011 Red Hat, Inc.
 
-import os, sys
+import os
+import sys
 import argparse
 
 from inject import CodeInjector
 from utils import setup_logger
+
 
 def main():
     parser = argparse.ArgumentParser(
         description='pyrasite - inject code into a running python process',
         epilog="For updates, visit https://github.com/lmacken/pyrasite"
         )
-    parser.add_argument('pid', help="The ID of the process to inject code into")
+    parser.add_argument('pid',
+                        help="The ID of the process to inject code into")
     parser.add_argument('filename',
                         help="The second argument must be a filename")
     parser.add_argument('--gdb-prefix', dest='gdb_prefix',
@@ -58,7 +61,8 @@ def main():
         log.error("Error: The second argument must be a filename")
         sys.exit(4)
 
-    injector = CodeInjector(pid, verbose=args.verbose, gdb_prefix=args.gdb_prefix)
+    injector = CodeInjector(pid, verbose=args.verbose,
+                            gdb_prefix=args.gdb_prefix)
     injector.inject(filename)
 
 if __name__ == '__main__':

@@ -17,6 +17,7 @@
 
 from utils import run
 
+
 class ObjectInspector(object):
     """Inspects objects in a running Python program"""
 

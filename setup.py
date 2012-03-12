@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 version = '2.0beta'
 
 f = open('README.rst')
-long_description = f.read()
+long_description = f.read().split('split here')[1]
 f.close()
 
 setup(name='pyrasite',

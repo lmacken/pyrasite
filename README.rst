@@ -1,6 +1,8 @@
 pyrasite
 ========
 
+.. split here
+
 Injects code into a running Python process.
 
 Requirements
@@ -26,6 +28,10 @@ Grab the latest source by running:
 
 You can also fork pyrasite on GitHub: http://github.com/lmacken/pyrasite
 
+pyrasite-gui
+~~~~~~~~~~~~
+
+.. image:: http://lewk.org/img/pyrasite/pyrasite-info.png
 
 API
 ~~~

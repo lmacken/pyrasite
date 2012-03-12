@@ -20,7 +20,6 @@ import pyrasite
 class ReverseShell(pyrasite.ReverseConnection):
 
     reliable = False # This payload is designed to be used with netcat
-    host = '127.0.0.1'
     port = 9001
 
     def on_connect(self):

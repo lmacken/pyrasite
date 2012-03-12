@@ -74,11 +74,23 @@ class PyrasiteIPC(object):
 
     def listen(self):
         """Listen on a random port"""
-        self.server_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.server_sock.settimeout(5)
-        self.server_sock.bind(('localhost', 0))
-        self.server_sock.listen(1)
-        self.port = self.server_sock.getsockname()[1]
+        for res in socket.getaddrinfo('localhost', None, socket.AF_UNSPEC, socket.SOCK_STREAM, 0, 0):
+            af, socktype, proto, canonname, sa = res
+            try:
+                self.server_sock = socket.socket(af, socktype, proto)
+            except socket.error, msg:
+                self.server_sock = None
+                continue
+            try:
+                self.server_sock.bind(sa)
+                self.server_sock.listen(1)
+            except socket.error, msg:
+                self.server_sock.close()
+                self.server_sock = None
+                continue
+            break
+
+        self.hostname, self.port = self.server_sock.getsockname()[0:2]
         self.running = True
 
     def create_payload(self):

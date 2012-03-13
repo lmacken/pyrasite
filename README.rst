@@ -10,6 +10,9 @@ Requirements
 
   - gdb (https://www.gnu.org/s/gdb) (version 7.3+)
   - Cython (http://cython.org)
+  - meliae (https://launchpad.net/meliae) 
+    - easy_install/pip may not work for this install.
+      If not, use the tarball from the distribution website
 
 Download
 ~~~~~~~~

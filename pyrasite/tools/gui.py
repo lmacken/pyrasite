@@ -32,7 +32,10 @@ import threading
 
 from os.path import join, abspath, dirname
 from random import randrange
-from meliae import loader
+try:
+    from meliae import loader
+except:
+    pass
 from gi.repository import GLib, GObject, Pango, Gtk, WebKit
 
 import pyrasite
@@ -606,6 +609,9 @@ class PyrasiteWindow(Gtk.Window):
         try:
             objects = loader.load('/tmp/%d.objects' % proc.pid,
                                   show_prog=False)
+        except NameError:
+            log.debug("Meliae not available, continuing...")
+            return
         except:
             log.debug("Falling back to slower meliae object dump loader")
             objects = loader.load('/tmp/%d.objects' % proc.pid,

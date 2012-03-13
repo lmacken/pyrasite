@@ -601,6 +601,7 @@ class PyrasiteWindow(Gtk.Window):
         if 'No module named meliae' in output:
             log.error('Error: %s is unable to import `meliae`' %
                       proc.title.strip())
+            return
         self.update_progress(0.35)
 
         # Clear previous model
@@ -610,9 +611,6 @@ class PyrasiteWindow(Gtk.Window):
         try:
             objects = loader.load('/tmp/%d.objects' % proc.pid,
                                   show_prog=False)
-        except NameError:
-            log.debug("Meliae not available, continuing...")
-            return
         except:
             log.debug("Falling back to slower meliae object dump loader")
             objects = loader.load('/tmp/%d.objects' % proc.pid,

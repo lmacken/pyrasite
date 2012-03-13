@@ -3,12 +3,17 @@ pyrasite
 
 .. split here
 
-Injects code into a running Python process.
+Pyrasite lets you to inject arbitrary code into an unaltered running Python
+process.
+
+It also contains a graphical interface that makes it easy to monitor and
+introspect running processes.
 
 Requirements
 ~~~~~~~~~~~~
 
   - gdb (https://www.gnu.org/s/gdb) (version 7.3+)
+  - python-gobject-dev (on debian or ubuntu: apt-get install python-gobject-dev)
   - Cython (http://cython.org)
   - meliae (https://launchpad.net/meliae) 
     - easy_install/pip may not work for this install. If not, use the tarball from the distribution website

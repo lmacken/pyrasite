@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-version = '2.0beta'
+version = '2.0beta2'
 
 f = open('README.rst')
 long_description = f.read().split('split here')[1]
@@ -10,6 +10,12 @@ try:
     from meliae import version_info
 except ImportError:
     print "We require meliae to be installed."
+    exit(1)
+
+try:
+    from gi.repository import  GLib, GObject, Pango, Gtk, WebKit
+except ImportError:
+    print "We require python-gobject-dev installed.  Use: apt-get install python-gobject-dev"
     exit(1)
 
 setup(name='pyrasite',

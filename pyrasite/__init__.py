@@ -1,7 +1,7 @@
-from inject import CodeInjector
-from inspect import ObjectInspector
-from ipc import PyrasiteIPC
-from reverse import ReverseConnection, ReversePythonConnection
+from .inject import CodeInjector
+from .inspect import ObjectInspector
+from .ipc import PyrasiteIPC
+from .reverse import ReverseConnection, ReversePythonConnection
 
 __version__ = '2.0beta'
 __all__ = ('CodeInjector', 'ObjectInspector', 'PyrasiteIPC',

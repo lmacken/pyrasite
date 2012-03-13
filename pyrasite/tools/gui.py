@@ -82,7 +82,8 @@ class Process(pyrasite.PyrasiteIPC, GObject.GObject):
     @property
     def title(self):
         if not getattr(self, '_title', None):
-            self._title = run('ps --no-heading -o cmd= -p %d' % self.pid)[1]
+            self._title = run('ps --no-heading -o cmd= -p %d' % self.pid)[1] \
+                    .decode('utf-8')
         return self._title
 
 

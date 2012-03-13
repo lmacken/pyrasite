@@ -166,4 +166,7 @@ Authors
 
 Luke Macken <lmacken@redhat.com>
 
+.. image:: http://api.coderwall.com/lmacken/endorsecount.png
+   :target: http://coderwall.com/lmacken
+
 David Malcolm <dmalcolm@redhat.com>

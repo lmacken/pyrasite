@@ -100,7 +100,7 @@ class PyrasiteIPC(object):
         (fd, filename) = tempfile.mkstemp()
         tmp = os.fdopen(fd, 'w')
         path = dirname(abspath(join(pyrasite.__file__, '..')))
-        payload = file(join(path, 'pyrasite', 'reverse.py'))
+        payload = open(join(path, 'pyrasite', 'reverse.py'))
         tmp.write('import sys; sys.path.insert(0, "%s")\n' % path)
 
         for line in payload.readlines():

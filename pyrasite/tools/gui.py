@@ -450,10 +450,10 @@ class PyrasiteWindow(Gtk.Window):
     def inject_js(self):
         log.debug("Injecting jQuery")
         js = join(dirname(abspath(__file__)), 'js')
-        jquery = file(join(js, 'jquery-1.7.1.min.js'))
+        jquery = open(join(js, 'jquery-1.7.1.min.js'))
         self.info_view.execute_script(jquery.read())
         jquery.close()
-        sparkline = file(join(js, 'jquery.sparkline.min.js'))
+        sparkline = open(join(js, 'jquery.sparkline.min.js'))
         self.info_view.execute_script(sparkline.read())
         sparkline.close()
 
@@ -638,7 +638,7 @@ class PyrasiteWindow(Gtk.Window):
         payloads = os.path.join(os.path.abspath(os.path.dirname(
             pyrasite.__file__)), 'payloads')
         dump_stacks = os.path.join(payloads, 'dump_stacks.py')
-        code = proc.cmd(file(dump_stacks).read())
+        code = proc.cmd(open(dump_stacks).read())
         self.update_progress(0.6)
 
         self.source_buffer.set_text('')

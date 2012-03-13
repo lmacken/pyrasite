@@ -86,11 +86,11 @@ class Process(pyrasite.PyrasiteIPC, GObject.GObject):
         return self._title
 
 
-class ProcessTreeStore(Gtk.TreeStore):
+class ProcessListStore(Gtk.ListStore):
     """This TreeStore finds all running python processes."""
 
     def __init__(self, *args):
-        Gtk.TreeStore.__init__(self, str, Process, Pango.Style)
+        Gtk.ListStore.__init__(self, str, Process, Pango.Style)
         for pid in os.listdir('/proc'):
             try:
                 pid = int(pid)
@@ -98,8 +98,8 @@ class ProcessTreeStore(Gtk.TreeStore):
                 try:
                     maps = open('/proc/%d/maps' % pid).read().strip()
                     if 'python' in maps:
-                        self.append(None, (proc.title.strip(), proc,
-                                           Pango.Style.NORMAL))
+                        self.append((proc.title.strip(), proc,
+                                     Pango.Style.NORMAL))
                 except IOError:
                     pass
             except ValueError:
@@ -670,7 +670,7 @@ class PyrasiteWindow(Gtk.Window):
             store.set_value(iter, 2, Pango.Style.NORMAL)
 
     def create_tree(self):
-        tree_store = ProcessTreeStore()
+        tree_store = ProcessListStore()
         tree_view = Gtk.TreeView()
         self.tree_view = tree_view
         tree_view.set_model(tree_store)

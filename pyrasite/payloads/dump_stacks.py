@@ -1,6 +1,7 @@
+from __future__ import print_function
 import sys, traceback
 
 for thread, frame in sys._current_frames().items():
     print('Thread 0x%x' % thread)
     traceback.print_stack(frame)
-    print
+    print()

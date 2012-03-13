@@ -611,6 +611,9 @@ class PyrasiteWindow(Gtk.Window):
         try:
             objects = loader.load('/tmp/%d.objects' % proc.pid,
                                   show_prog=False)
+        except NameError:
+            log.debug("Meliae not available, continuing...")
+            return
         except:
             log.debug("Falling back to slower meliae object dump loader")
             objects = loader.load('/tmp/%d.objects' % proc.pid,

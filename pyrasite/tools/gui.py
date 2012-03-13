@@ -32,7 +32,10 @@ import threading
 
 from os.path import join, abspath, dirname
 from random import randrange
-from meliae import loader
+try:
+    from meliae import loader
+except:
+    pass
 from gi.repository import GLib, GObject, Pango, Gtk, WebKit
 
 import pyrasite
@@ -79,15 +82,16 @@ class Process(pyrasite.PyrasiteIPC, GObject.GObject):
     @property
     def title(self):
         if not getattr(self, '_title', None):
-            self._title = run('ps --no-heading -o cmd= -p %d' % self.pid)[1]
+            self._title = run('ps --no-heading -o cmd= -p %d' % self.pid)[1] \
+                    .decode('utf-8')
         return self._title
 
 
-class ProcessTreeStore(Gtk.TreeStore):
+class ProcessListStore(Gtk.ListStore):
     """This TreeStore finds all running python processes."""
 
     def __init__(self, *args):
-        Gtk.TreeStore.__init__(self, str, Process, Pango.Style)
+        Gtk.ListStore.__init__(self, str, Process, Pango.Style)
         for pid in os.listdir('/proc'):
             try:
                 pid = int(pid)
@@ -95,8 +99,8 @@ class ProcessTreeStore(Gtk.TreeStore):
                 try:
                     maps = open('/proc/%d/maps' % pid).read().strip()
                     if 'python' in maps:
-                        self.append(None, (proc.title.strip(), proc,
-                                           Pango.Style.NORMAL))
+                        self.append((proc.title.strip(), proc,
+                                     Pango.Style.NORMAL))
                 except IOError:
                     pass
             except ValueError:
@@ -450,10 +454,10 @@ class PyrasiteWindow(Gtk.Window):
     def inject_js(self):
         log.debug("Injecting jQuery")
         js = join(dirname(abspath(__file__)), 'js')
-        jquery = file(join(js, 'jquery-1.7.1.min.js'))
+        jquery = open(join(js, 'jquery-1.7.1.min.js'))
         self.info_view.execute_script(jquery.read())
         jquery.close()
-        sparkline = file(join(js, 'jquery.sparkline.min.js'))
+        sparkline = open(join(js, 'jquery.sparkline.min.js'))
         self.info_view.execute_script(sparkline.read())
         sparkline.close()
 
@@ -606,6 +610,9 @@ class PyrasiteWindow(Gtk.Window):
         try:
             objects = loader.load('/tmp/%d.objects' % proc.pid,
                                   show_prog=False)
+        except NameError:
+            log.debug("Meliae not available, continuing...")
+            return
         except:
             log.debug("Falling back to slower meliae object dump loader")
             objects = loader.load('/tmp/%d.objects' % proc.pid,
@@ -638,7 +645,7 @@ class PyrasiteWindow(Gtk.Window):
         payloads = os.path.join(os.path.abspath(os.path.dirname(
             pyrasite.__file__)), 'payloads')
         dump_stacks = os.path.join(payloads, 'dump_stacks.py')
-        code = proc.cmd(file(dump_stacks).read())
+        code = proc.cmd(open(dump_stacks).read())
         self.update_progress(0.6)
 
         self.source_buffer.set_text('')
@@ -664,7 +671,7 @@ class PyrasiteWindow(Gtk.Window):
             store.set_value(iter, 2, Pango.Style.NORMAL)
 
     def create_tree(self):
-        tree_store = ProcessTreeStore()
+        tree_store = ProcessListStore()
         tree_view = Gtk.TreeView()
         self.tree_view = tree_view
         tree_view.set_model(tree_store)

@@ -6,6 +6,12 @@ f = open('README.rst')
 long_description = f.read().split('split here')[1]
 f.close()
 
+try:
+    from meliae import version_info
+except ImportError:
+    print "We require meliae to be installed."
+    exit(1)
+
 setup(name='pyrasite',
       version=version,
       description="Inject code into a running Python process",

@@ -23,7 +23,10 @@ import sys
 import socket
 import threading
 
-from StringIO import StringIO
+if sys.version_info[0] == 3:
+    from io import StringIO
+else:
+    from StringIO import StringIO
 from pyrasite.ipc import PyrasiteIPC
 
 
@@ -74,7 +77,7 @@ class ReverseConnection(threading.Thread, PyrasiteIPC):
                         running = False
                     else:
                         running = self.on_command(cmd)
-            except Exception, e:
+            except Exception as e:
                 print(str(e))
                 running = False
             if not running:
@@ -94,7 +97,7 @@ class ReversePythonConnection(ReverseConnection):
         try:
             exec(cmd)
             output = buffer.getvalue()
-        except Exception, e:
+        except Exception as e:
             output = str(e)
         finally:
             sys.stdout = sys.__stdout__

@@ -23,7 +23,10 @@ import sys
 import socket
 import threading
 
-from StringIO import StringIO
+if sys.version_info[0] == 3:
+    from io import StringIO
+else:
+    from StringIO import StringIO
 from pyrasite.ipc import PyrasiteIPC
 
 

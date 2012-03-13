@@ -31,7 +31,7 @@ Authors:
 import os
 import warnings
 
-from utils import run
+from .utils import run
 
 
 class CodeInjector(object):
@@ -56,7 +56,7 @@ class CodeInjector(object):
             # Allow payloads to import modules alongside them
             'PyRun_SimpleString("import sys; sys.path.insert(0, \\"%s\\");")' %
                 os.path.dirname(self.filename),
-            'PyRun_SimpleString("execfile(\\"%s\\")")' % self.filename,
+            'PyRun_SimpleString("exec(open(\\"%s\\").read())")' % self.filename,
             'PyGILState_Release($1)',
             ]
         run('%sgdb -p %d -batch %s' % (self.gdb_prefix, self.pid,

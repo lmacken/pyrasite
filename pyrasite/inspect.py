@@ -15,7 +15,7 @@
 #
 # Copyright (C) 2011 Red Hat, Inc.
 
-from utils import run
+from .utils import run
 
 
 class ObjectInspector(object):

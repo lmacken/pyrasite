@@ -74,7 +74,7 @@ class ReverseConnection(threading.Thread, PyrasiteIPC):
                         running = False
                     else:
                         running = self.on_command(cmd)
-            except Exception, e:
+            except Exception as e:
                 print(str(e))
                 running = False
             if not running:
@@ -94,7 +94,7 @@ class ReversePythonConnection(ReverseConnection):
         try:
             exec(cmd)
             output = buffer.getvalue()
-        except Exception, e:
+        except Exception as e:
             output = str(e)
         finally:
             sys.stdout = sys.__stdout__

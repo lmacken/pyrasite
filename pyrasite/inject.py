@@ -31,7 +31,7 @@ Authors:
 import os
 import warnings
 
-from utils import run
+from .utils import run
 
 
 class CodeInjector(object):

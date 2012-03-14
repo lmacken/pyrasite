@@ -156,6 +156,11 @@ Since version 10.10, Ubuntu ships with a `controversial patch <https://lkml.org/
 
     echo 0 | sudo tee /proc/sys/kernel/yama/ptrace_scope
 
+Arch Linux
+----------
+
+You can install pyrasite from the `Arch User Repository <https://aur.archlinux.org/packages.php?ID=57604>`_ If you want python debugging symbols, you may have to self compile python2.
+
 
 
 Mailing List

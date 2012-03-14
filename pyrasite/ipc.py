@@ -80,17 +80,21 @@ class PyrasiteIPC(object):
             af, socktype, proto, canonname, sa = res
             try:
                 self.server_sock = socket.socket(af, socktype, proto)
-            except socket.error:
+            except socket.error, e:
+                log.debug(str(e))
                 self.server_sock = None
                 continue
             try:
                 self.server_sock.bind(sa)
                 self.server_sock.listen(1)
-            except socket.error:
+            except socket.error, e:
+                log.debug(str(e))
                 self.server_sock.close()
                 self.server_sock = None
                 continue
             break
+        else:
+            log.error('Unable to setup server socket')
 
         self.hostname, self.port = self.server_sock.getsockname()[0:2]
         self.running = True

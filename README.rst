@@ -90,7 +90,7 @@ upstream website.
 
 
 Pyrasite also provides a tool to view the values of largest objects in your
-process. This requires `urwid <http://pypi.python.org/pypi/urwid>` to be
+process. This requires `urwid <http://pypi.python.org/pypi/urwid>`_ to be
 installed.
 
 ::

@@ -20,7 +20,7 @@ pyrasite
 
 Inject code into a running python process.
 
-    http://pyrasite.fedorahosted.org
+    http://pyrasite.com
 
 Authors:
 

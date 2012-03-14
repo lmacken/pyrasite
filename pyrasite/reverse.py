@@ -70,13 +70,18 @@ class ReverseConnection(threading.Thread, PyrasiteIPC):
                         continue
                     break
 
+                if not self.sock:
+                    raise Exception('pyrasite cannot establish reverse connection to %s:%d' % (self.host, self.port))
+
                 self.on_connect()
+
                 while running:
                     cmd = self.recv()
                     if cmd is None or cmd == "quit\n" or len(cmd) == 0:
                         running = False
                     else:
                         running = self.on_command(cmd)
+
             except Exception as e:
                 print(str(e))
                 running = False

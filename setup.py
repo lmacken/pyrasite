@@ -6,18 +6,6 @@ f = open('README.rst')
 long_description = f.read().split('split here')[1]
 f.close()
 
-try:
-    from meliae import version_info
-except ImportError:
-    print "We require meliae to be installed."
-    exit(1)
-
-try:
-    from gi.repository import  GLib, GObject, Pango, Gtk, WebKit
-except ImportError:
-    print "We require python-gobject-dev installed.  Use: apt-get install python-gobject-dev"
-    exit(1)
-
 setup(name='pyrasite',
       version=version,
       description="Inject code into a running Python process",
@@ -30,13 +18,7 @@ setup(name='pyrasite',
       packages=find_packages(exclude=['ez_setup', 'examples', 'tests']),
       include_package_data=True,
       zip_safe=False,
-      install_requires=[
-        "Cython", # Needed for meliae
-        "meliae",
-        "pycallgraph",
-        "psutil",
-        "Sphinx",
-      ],
+      install_requires=[],
       tests_require=['nose'],
       test_suite='nose.collector',
       entry_points="""

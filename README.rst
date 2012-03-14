@@ -25,7 +25,7 @@ Download the latest stable release from PyPi: http://pypi.python.org/pypi/pyrasi
 
 ::
 
-    easy_install pyrasite
+    pip install pyrasite
 
 Grab the latest source by running:
 

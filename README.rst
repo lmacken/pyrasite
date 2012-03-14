@@ -27,11 +27,13 @@ Download the latest stable release from PyPi: http://pypi.python.org/pypi/pyrasi
 
     pip install pyrasite
 
-Grab the latest source by running:
+You can also run the latest pyrasite from source:
 
 ::
 
     git clone git://git.fedorahosted.org/git/pyrasite
+    cd pyrasite
+    python -m pyrasite.main
 
 You can also fork pyrasite on GitHub: http://github.com/lmacken/pyrasite
 

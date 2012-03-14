@@ -79,20 +79,19 @@ Viewing the largest objects in your process
 
 This payload uses `meliae <https://launchpad.net/meliae>`_ to dump all of the objects in your process to an `objects.json` file (currently dumped in the working directory of your process).
 
-.. note::
-
-   We recommend using python-meliae from your OS distribution, if available. If
-   it is not, you will need to first install Cython, and then meliae
-   seperately. If pip/easy_install does not work, you may need to use the
-   tarball from the upstream website.
+We recommend using python-meliae from your OS distribution, if available. If it
+is not, you will need to first install Cython, and then meliae seperately. If
+pip/easy_install does not work, you may need to use the tarball from the
+upstream website.
 
 ::
 
     $ pyrasite <PID> pyrasite/payloads/dump_memory.py
 
 
-Pyrasite also provides a tool to view the values of largest objects in your process.
-
+Pyrasite also provides a tool to view the values of largest objects in your
+process. This requires `urwid <http://pypi.python.org/pypi/urwid>` to be
+installed.
 
 ::
 

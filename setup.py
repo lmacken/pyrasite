@@ -12,12 +12,6 @@ except ImportError:
     print "We require meliae to be installed."
     exit(1)
 
-try:
-    from gi.repository import  GLib, GObject, Pango, Gtk, WebKit
-except ImportError:
-    print "We require python-gobject-dev installed.  Use: apt-get install python-gobject-dev"
-    exit(1)
-
 setup(name='pyrasite',
       version=version,
       description="Inject code into a running Python process",

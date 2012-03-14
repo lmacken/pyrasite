@@ -35,8 +35,13 @@ from random import randrange
 try:
     from meliae import loader
 except:
-    pass
-from gi.repository import GLib, GObject, Pango, Gtk, WebKit
+    print "Unable to import meliae. Object memory analysis disabled."
+try:
+    from gi.repository import GLib, GObject, Pango, Gtk, WebKit
+except ImportError:
+    print "Unable to find pygobject3. Please install the 'pygobject3' "
+    print "package on Fedora, or 'python-gobject-dev on Ubuntu."
+    sys.exit(1)
 
 import pyrasite
 from pyrasite.utils import setup_logger, run, humanize_bytes

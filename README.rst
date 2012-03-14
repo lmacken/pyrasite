@@ -45,7 +45,7 @@ API
     from pyrasite.inject import CodeInjector
 
     ci = CodeInjector(p.pid)
-    ci.inject('payloads/helloworld.py')
+    ci.inject('pyrasite/payloads/helloworld.py')
 
 
 Payloads

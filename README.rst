@@ -40,6 +40,8 @@ You can also fork pyrasite on GitHub: http://github.com/lmacken/pyrasite
 pyrasite-gui
 ~~~~~~~~~~~~
 
+The gui has been moved into it's own repository: https://github.com/lmacken/pyrasite-gui
+
 .. image:: http://lewk.org/img/pyrasite/pyrasite-info.png
 
 API

@@ -6,9 +6,6 @@ pyrasite
 Pyrasite lets you to inject arbitrary code into an unaltered running Python
 process.
 
-It also contains a graphical interface that makes it easy to monitor and
-introspect running processes.
-
 Requirements
 ~~~~~~~~~~~~
 

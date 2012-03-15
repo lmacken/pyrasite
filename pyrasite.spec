@@ -33,7 +33,6 @@ also comes with a variety of example payloads.
 %defattr(-,root,root,-)
 %doc README.rst
 %{_bindir}/pyrasite
-%{_bindir}/pyrasite-gui
 %{_bindir}/pyrasite-memory-viewer
 %{python_sitelib}/*
 

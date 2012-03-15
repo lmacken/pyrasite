@@ -12,6 +12,8 @@ Source0:          http://pypi.python.org/packages/source/p/%{name}/%{name}-%{ver
 
 BuildArch:        noarch
 BuildRequires:    python-devel
+BuildRequires:    python-setuptools-devel
+BuildRequires:    python-nose
 
 Requires:         gdb >= 7.3
 
@@ -25,6 +27,9 @@ also comes with a variety of example payloads.
 
 %build
 %{__python} setup.py build
+
+%check
+%{__python} setup.py test
 
 %install
 %{__python} setup.py install -O1 --skip-build --root $RPM_BUILD_ROOT

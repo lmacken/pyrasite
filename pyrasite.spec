@@ -1,4 +1,4 @@
-%global betaver beta3
+%global betaver beta6
 
 Name:             pyrasite
 Version:          2.0
@@ -12,17 +12,13 @@ Source0:          http://pypi.python.org/packages/source/p/%{name}/%{name}-%{ver
 
 BuildArch:        noarch
 BuildRequires:    python-devel
-BuildRequires:    python-meliae
 
-Requires:         pygobject3
-Requires:         webkitgtk3
-Requires:         python-meliae
-Requires:         python-pycallgraph
 Requires:         gdb >= 7.3
 
 %description
-Pyrasite uses gdb to inject code into a running Python process.  It is
-comprised of a command-line tool, a Python API, and a graphical interface.
+Pyrasite uses the GNU debugger to inject code into a running Python process.
+It is comprised of a command-line tool, and a Python API. This package
+also comes with a variety of example payloads.
 
 %prep
 %setup -q -n %{name}-%{version}%{betaver}

@@ -24,11 +24,9 @@ You can also run the latest pyrasite from source:
 
 ::
 
-    git clone git://git.fedorahosted.org/git/pyrasite
+    git clone git://github.com/lmacken/pyrasite.git
     cd pyrasite
     python -m pyrasite.main
-
-You can also fork pyrasite on GitHub: http://github.com/lmacken/pyrasite
 
 pyrasite-gui
 ~~~~~~~~~~~~

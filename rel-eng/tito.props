@@ -1,0 +1,5 @@
+[globalconfig]
+default_builder = tito.builder.Builder
+default_tagger = tito.tagger.VersionTagger
+changelog_do_not_remove_cherrypick = 0
+changelog_with_email = 1

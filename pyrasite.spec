@@ -1,14 +1,12 @@
-%global betaver beta6
-
 Name:             pyrasite
 Version:          2.0
-Release:          0.1.%{betaver}%{?dist}
+Release:          1%{?dist}
 Summary:          Code injection and monitoring of running Python processes
 
 Group:            Development/Languages
 License:          GPLv3
 URL:              http://pyrasite.com
-Source0:          http://pypi.python.org/packages/source/p/%{name}/%{name}-%{version}%{betaver}.tar.gz
+Source0:          http://pypi.python.org/packages/source/p/%{name}/%{name}-%{version}.tar.gz
 
 BuildArch:        noarch
 BuildRequires:    python-devel
@@ -23,7 +21,7 @@ It is comprised of a command-line tool, and a Python API. This package
 also comes with a variety of example payloads.
 
 %prep
-%setup -q -n %{name}-%{version}%{betaver}
+%setup -q
 
 %build
 %{__python} setup.py build

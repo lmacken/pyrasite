@@ -34,5 +34,7 @@ setup(name='pyrasite',
           'License :: OSI Approved :: GNU General Public License (GPL)',
           'Topic :: System :: Monitoring',
           'Topic :: Software Development :: Debuggers',
+          'Programming Language :: Python',
+          'Programming Language :: Python :: 3',
       ],
       )

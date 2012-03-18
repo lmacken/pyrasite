@@ -30,8 +30,7 @@ Authors:
 
 import os
 import warnings
-
-from .utils import run
+import subprocess
 
 
 class CodeInjector(object):
@@ -60,5 +59,6 @@ class CodeInjector(object):
                 self.filename,
             'PyGILState_Release($1)',
             ]
-        run('%sgdb -p %d -batch %s' % (self.gdb_prefix, self.pid,
-            ' '.join(["-eval-command='call %s'" % cmd for cmd in gdb_cmds])))
+        subprocess.call('%sgdb -p %d -batch %s' % (self.gdb_prefix, self.pid,
+            ' '.join(["-eval-command='call %s'" % cmd for cmd in gdb_cmds])),
+            shell=True)

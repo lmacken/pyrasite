@@ -15,7 +15,7 @@
 #
 # Copyright (C) 2011, 2012 Red Hat, Inc.
 
-from .utils import run
+import subprocess
 
 
 class ObjectInspector(object):
@@ -30,6 +30,7 @@ class ObjectInspector(object):
             'gdb --quiet -p %s -batch' % self.pid,
             '-eval-command="print (PyObject *)%s"' % address,
         ])
-        for line in run(cmd)[1].split('\n'):
+        p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
+        for line in p.communicate()[0].split('\n'):
             if line.startswith('$1 = '):
                 return line[5:]

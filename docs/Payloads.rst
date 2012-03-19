@@ -18,10 +18,12 @@ This lets you easily introspect or alter any objects in your running process.
 ::
 
     $ pyrasite <PID> pyrasite/payloads/reverse_python_shell.py
+
+::
+
     $ nc -l 9001
     Python 2.7.1 (r271:86832, Apr 12 2011, 16:15:16)
     [GCC 4.6.0 20110331 (Red Hat 4.6.0-2)]
-    Type 'quit' to exit.
     >>> print x
     foo
     >>> globals()['x'] = 'bar'
@@ -29,7 +31,14 @@ This lets you easily introspect or alter any objects in your running process.
 Viewing the largest objects in your process
 -------------------------------------------
 
-This payload uses `meliae <https://launchpad.net/meliae>`_ to dump all of the objects in your process to an `objects.json` file (currently dumped in the working directory of your process).
+This payload uses `meliae <https://launchpad.net/meliae>`_ to dump all of
+the objects in your process to an `objects.json` file (currently dumped in
+the working directory of your process).
+
+We recommend using python-meliae from your OS distribution, if available.
+If it is not, you will need to first install Cython, and then meliae
+seperately. If pip/easy_install does not work, you may need to use the
+tarball from the upstream website.
 
 .. literalinclude:: ../pyrasite/payloads/dump_memory.py
    :language: python
@@ -40,8 +49,9 @@ This payload uses `meliae <https://launchpad.net/meliae>`_ to dump all of the ob
     $ pyrasite <PID> pyrasite/payloads/dump_memory.py
 
 
-Pyrasite also provides a command-line tool to view the values of largest
-objects in your process.
+Pyrasite also provides a tool to view the values of largest objects in your
+process. This requires `urwid <http://pypi.python.org/pypi/urwid>`_ to be
+installed.
 
 
 ::
@@ -62,9 +72,11 @@ Reverse Shell
 ::
 
     $ pyrasite <PID> pyrasite/payloads/reverse_shell.py
+
+::
+
     $ nc -l 9001
     Linux tomservo 2.6.40.3-0.fc15.x86_64 #1 SMP Tue Aug 16 04:10:59 UTC 2011 x86_64 x86_64 x86_64 GNU/Linux
-    Type 'quit' to exit.
     % ls
 
 

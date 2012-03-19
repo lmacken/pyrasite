@@ -1,8 +1,3 @@
-from .inject import CodeInjector
-from .inspect import ObjectInspector
-from .ipc import PyrasiteIPC
-from .reverse import ReverseConnection, ReversePythonConnection
-
 __version__ = '2.0beta6'
 __all__ = ('CodeInjector', 'ObjectInspector', 'PyrasiteIPC',
            'ReverseConnection', 'ReversePythonConnection')
@@ -21,3 +16,8 @@ You should have received a copy of the GNU General Public License
 along with pyrasite.  If not, see <http://www.gnu.org/licenses/>.\
 """
 __copyright__ = "Copyright (C) 2011, 2012 Red Hat, Inc."
+
+from pyrasite.inject import CodeInjector
+from pyrasite.inspect import ObjectInspector
+from pyrasite.ipc import PyrasiteIPC
+from pyrasite.reverse import ReverseConnection, ReversePythonConnection

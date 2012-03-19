@@ -13,7 +13,11 @@ GUI
 ---
 
  - `Pyrasite <https://github.com/lmacken/pyrasite>`_
- - python-debuginfo (needed for live object inspection)
+ - Python debuginfo (needed for live object inspection)
+
+   - Fedora: python-debuginfo
+   - Ubuntu: python-dbg
+
  - PyGObject3 Introspection bindings
 
    - Fedora: pygobject3

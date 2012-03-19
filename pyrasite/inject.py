@@ -52,9 +52,12 @@ class CodeInjector(object):
             self.filename = os.path.abspath(filename)
         gdb_cmds = [
             'PyGILState_Ensure()',
-            # Allow payloads to import modules alongside them
-            'PyRun_SimpleString("import sys; sys.path.insert(0, \\"%s\\");")' %
-                os.path.dirname(self.filename),
+            # Allow payloads to import modules alongside them, and allow them
+            # to 'import pyrasite' as well.
+            'PyRun_SimpleString("import sys; sys.path.insert(0, \\"%s\\"); '
+                'sys.path.insert(0, \\"%s\\")"' % (
+                    os.path.dirname(self.filename),
+                    os.path.join(os.path.abspath(__file__), '..')),
             'PyRun_SimpleString("exec(open(\\"%s\\").read())")' %
                 self.filename,
             'PyGILState_Release($1)',

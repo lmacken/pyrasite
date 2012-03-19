@@ -1,4 +1,3 @@
-from __future__ import print_function
 import sys, traceback
 
 for thread, frame in sys._current_frames().items():

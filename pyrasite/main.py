@@ -19,7 +19,7 @@ import os
 import sys
 import argparse
 
-from inject import CodeInjector
+import pyrasite
 
 
 def main():
@@ -58,8 +58,8 @@ def main():
         print("Error: The second argument must be a filename")
         sys.exit(4)
 
-    injector = CodeInjector(pid, verbose=args.verbose,
-                            gdb_prefix=args.gdb_prefix)
+    injector = pyrasite.CodeInjector(pid, verbose=args.verbose,
+                                     gdb_prefix=args.gdb_prefix)
     injector.inject(filename)
 
 

@@ -139,7 +139,7 @@ class PyrasiteIPC(object):
 
     def send(self, data):
         """Send arbitrary data to the process via self.sock"""
-        header = b''
+        header = ''.encode('utf-8')
         data = data.encode('utf-8')
         if self.reliable:
             header = struct.pack('<L', len(data))
@@ -159,7 +159,7 @@ class PyrasiteIPC(object):
 
     def recv_bytes(self, n):
         """Receive n bytes from a socket"""
-        data = b''
+        data = ''.encode('utf-8')
         while len(data) < n:
             chunk = self.sock.recv(n - len(data))
             if not chunk:

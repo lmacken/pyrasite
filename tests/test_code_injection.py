@@ -20,6 +20,7 @@ import subprocess
 
 from pyrasite.inject import CodeInjector
 
+
 class TestCodeInjection(unittest.TestCase):
 
     def test_injection(self):
@@ -31,7 +32,8 @@ class TestCodeInjection(unittest.TestCase):
         ci.inject('pyrasite/payloads/helloworld.py')
 
         stdout, stderr = p.communicate()
-        assert 'Hello World!' in stdout, "Code injection failed"
+        assert 'Hello World!' in stdout.decode('utf-8'), \
+               "Code injection failed"
 
     def test_multithreaded_injection(self):
         cmd = [
@@ -46,7 +48,9 @@ class TestCodeInjection(unittest.TestCase):
         ci.inject('pyrasite/payloads/helloworld.py')
 
         stdout, stderr = p.communicate()
-        assert 'Hello World!' in stdout, "Multi-threaded code injection failed"
+        assert 'Hello World!' in stdout.decode('utf-8'), \
+               "Multi-threaded code injection failed"
+
 
 if __name__ == '__main__':
     unittest.main()

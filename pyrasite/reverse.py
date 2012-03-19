@@ -28,10 +28,11 @@ if sys.version_info[0] == 3:
     from io import StringIO
 else:
     from StringIO import StringIO
-from pyrasite.ipc import PyrasiteIPC
+
+import pyrasite
 
 
-class ReverseConnection(threading.Thread, PyrasiteIPC):
+class ReverseConnection(threading.Thread, pyrasite.PyrasiteIPC):
     """A payload that connects to a given host:port and receives commands"""
 
     host = 'localhost'

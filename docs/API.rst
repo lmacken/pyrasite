@@ -1,12 +1,15 @@
 Pyrasite API
 ============
 
-.. autoclass:: pyrasite.CodeInjector
-   :members:
-.. autoclass:: pyrasite.ObjectInspector
-   :members:
+.. autofunction:: pyrasite.inject
+
+.. autofunction:: pyrasite.inspect
+
 .. autoclass:: pyrasite.PyrasiteIPC
    :members:
+
 .. autoclass:: pyrasite.ReverseConnection
    :members:
 
+.. autoclass:: pyrasite.ReversePythonConnection
+   :members:

@@ -13,24 +13,17 @@
 # You should have received a copy of the GNU General Public License
 # along with pyrasite.  If not, see <http://www.gnu.org/licenses/>.
 #
-# Copyright (C) 2011, 2012 Red Hat, Inc.
+# Copyright (C) 2011, 2012 Red Hat, Inc., Luke Macken <lmacken@redhat.com>
 
 import subprocess
 
-
-class ObjectInspector(object):
-    """Inspects objects in a running Python program"""
-
-    def __init__(self, pid):
-        self.pid = pid
-
-    def inspect(self, address):
-        """Return the value of an object at a given address"""
-        cmd = ' '.join([
-            'gdb --quiet -p %s -batch' % self.pid,
-            '-eval-command="print (PyObject *)%s"' % address,
-        ])
-        p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
-        for line in p.communicate()[0].split('\n'):
-            if line.startswith('$1 = '):
-                return line[5:]
+def inspect(pid, address):
+    "Return the value of an object in a given process at the specified address"
+    cmd = ' '.join([
+        'gdb --quiet -p %s -batch' % pid,
+        '-eval-command="print (PyObject *)%s"' % address,
+    ])
+    p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
+    for line in p.communicate()[0].split('\n'):
+        if line.startswith('$1 = '):
+            return line[5:]

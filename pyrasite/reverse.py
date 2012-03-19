@@ -21,6 +21,7 @@
 
 import sys
 import socket
+import traceback
 import threading
 
 if sys.version_info[0] == 3:
@@ -82,8 +83,8 @@ class ReverseConnection(threading.Thread, PyrasiteIPC):
                     else:
                         running = self.on_command(cmd)
 
-            except Exception as e:
-                print(str(e))
+            except:
+                traceback.print_exc()
                 running = False
             if not running:
                 self.close()
@@ -102,11 +103,11 @@ class ReversePythonConnection(ReverseConnection):
         try:
             exec(cmd)
             output = buffer.getvalue()
-        except Exception as e:
-            output = str(e)
-        finally:
-            sys.stdout = sys.__stdout__
-            sys.stderr = sys.__stderr__
-            buffer.close()
+        except:
+            exc_type, exc_value, exc_tb = sys.exc_info()
+            output = exc_value.message
+        sys.stdout = sys.__stdout__
+        sys.stderr = sys.__stderr__
+        buffer.close()
         self.send(output)
         return True

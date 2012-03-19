@@ -104,8 +104,7 @@ class ReversePythonConnection(ReverseConnection):
             exec(cmd)
             output = buffer.getvalue()
         except:
-            exc_type, exc_value, exc_tb = sys.exc_info()
-            output = exc_value.message
+            output = traceback.format_exc()
         sys.stdout = sys.__stdout__
         sys.stderr = sys.__stderr__
         buffer.close()

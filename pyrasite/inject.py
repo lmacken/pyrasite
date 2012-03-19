@@ -59,6 +59,10 @@ class CodeInjector(object):
                 self.filename,
             'PyGILState_Release($1)',
             ]
-        subprocess.call('%sgdb -p %d -batch %s' % (self.gdb_prefix, self.pid,
+        p = subprocess.Popen('%sgdb -p %d -batch %s' % (self.gdb_prefix, self.pid,
             ' '.join(["-eval-command='call %s'" % cmd for cmd in gdb_cmds])),
-            shell=True)
+            shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        out, err = p.communicate()
+        if self.verbose:
+            print(out)
+            print(err)

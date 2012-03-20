@@ -1,5 +1,5 @@
 __version__ = '2.0beta6'
-__all__ = ('CodeInjector', 'ObjectInspector', 'PyrasiteIPC',
+__all__ = ('inject', 'inspect', 'PyrasiteIPC',
            'ReverseConnection', 'ReversePythonConnection')
 __license__ = """\
 pyrasite is free software: you can redistribute it and/or modify
@@ -17,7 +17,7 @@ along with pyrasite.  If not, see <http://www.gnu.org/licenses/>.\
 """
 __copyright__ = "Copyright (C) 2011, 2012 Red Hat, Inc."
 
-from pyrasite.inject import CodeInjector
-from pyrasite.inspect import ObjectInspector
+from pyrasite.injector import inject
+from pyrasite.inspector import inspect
 from pyrasite.ipc import PyrasiteIPC
 from pyrasite.reverse import ReverseConnection, ReversePythonConnection

@@ -1,4 +1,4 @@
-%global betaver beta6
+%global betaver beta7
 
 Name:             pyrasite
 Version:          2.0

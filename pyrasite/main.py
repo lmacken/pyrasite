@@ -58,9 +58,8 @@ def main():
         print("Error: The second argument must be a filename")
         sys.exit(4)
 
-    injector = pyrasite.CodeInjector(pid, verbose=args.verbose,
-                                     gdb_prefix=args.gdb_prefix)
-    injector.inject(filename)
+    pyrasite.inject(pid, filename, verbose=args.verbose,
+                    gdb_prefix=args.gdb_prefix)
 
 
 if __name__ == '__main__':

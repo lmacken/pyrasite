@@ -18,7 +18,7 @@
 import unittest
 import subprocess
 
-from pyrasite.inject import CodeInjector
+import pyrasite
 
 
 class TestCodeInjection(unittest.TestCase):
@@ -28,8 +28,7 @@ class TestCodeInjection(unittest.TestCase):
         p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE)
 
-        ci = CodeInjector(p.pid, verbose=True)
-        ci.inject('pyrasite/payloads/helloworld.py')
+        pyrasite.inject(p.pid, 'pyrasite/payloads/helloworld.py', verbose=True)
 
         stdout, stderr = p.communicate()
         assert 'Hello World!' in stdout.decode('utf-8'), \
@@ -44,8 +43,7 @@ class TestCodeInjection(unittest.TestCase):
         p = subprocess.Popen('python -c "%s"' % ';'.join(cmd), shell=True,
                 stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-        ci = CodeInjector(p.pid, verbose=True)
-        ci.inject('pyrasite/payloads/helloworld.py')
+        pyrasite.inject(p.pid, 'pyrasite/payloads/helloworld.py', verbose=True)
 
         stdout, stderr = p.communicate()
         assert 'Hello World!' in stdout.decode('utf-8'), \

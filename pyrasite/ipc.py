@@ -119,8 +119,7 @@ class PyrasiteIPC(object):
     def inject(self):
         """Inject the payload into the process."""
         filename = self.create_payload()
-        injector = pyrasite.CodeInjector(self.pid)
-        injector.inject(filename)
+        pyrasite.inject(self.pid, filename)
         os.unlink(filename)
 
     def wait(self):

@@ -39,6 +39,7 @@ also comes with a variety of example payloads.
 %doc README.rst
 %{_bindir}/pyrasite
 %{_bindir}/pyrasite-memory-viewer
+%{_bindir}/pyrasite-shell
 %{python_sitelib}/*
 
 %changelog

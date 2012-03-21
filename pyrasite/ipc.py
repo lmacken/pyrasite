@@ -63,6 +63,7 @@ class PyrasiteIPC(object):
         super(PyrasiteIPC, self).__init__()
         self.pid = pid
         self.sock = None
+        self.server_sock = None
 
     def connect(self):
         """
@@ -168,6 +169,8 @@ class PyrasiteIPC(object):
     def close(self):
         if self.sock:
             self.sock.close()
+        if self.server_sock:
+            self.server_sock.close()
 
     def __repr__(self):
         return "<%s %s>" % (self.__class__.__name__, self.pid)

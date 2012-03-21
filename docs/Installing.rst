@@ -15,39 +15,28 @@ GUI
  - `Pyrasite <https://github.com/lmacken/pyrasite>`_
  - Python debuginfo (needed for live object inspection)
 
-   - Fedora: python-debuginfo
-   - Ubuntu: python-dbg
+   - Fedora: python-debuginfo, Ubuntu: python-dbg
 
  - PyGObject3 Introspection bindings
 
-   - Fedora: pygobject3
-   - Ubuntu: python-gobject-dev
-   - Arch: python2-gobject
+   - Fedora: pygobject3, Ubuntu: python-gobject-dev, Arch: python2-gobject
 
  - WebKitGTK3
 
-   - Fedora: webkitgtk3
-   - Ubuntu: gir1.2-webkit-3.0
-   - Arch: libwebkit3
+   - Fedora: webkitgtk3, Ubuntu: gir1.2-webkit-3.0, Arch: libwebkit3
 
  - `meliae <https://launchpad.net/meliae>`_
    - easy_install/pip may not work for this install. If not, use the tarball from the distribution website. You may need to install `Cython <http://cython.org>`_ in order to get meliae to build.
 
-   - Fedora: python-meliae
-   - Ubuntu: python-meliae
-   - Arch: python2-meliae
+   - Fedora: python-meliae, Ubuntu: python-meliae, Arch: python2-meliae
 
  - `pycallgraph <http://pycallgraph.slowchop.com>`_
 
-   - Fedora: python-pycallgraph
-   - Ubuntu: python-pycallgraph
-   - Arch: python2-pycallgraph
+   - Fedora: python-pycallgraph, Ubuntu: python-pycallgraph, Arch: python2-pycallgraph
 
  - `psutil <http://code.google.com/p/psutil>`_
 
-   - Fedora: python-psutil
-   - Ubuntu: python-psutil
-   - Arch: python2-psutil
+   - Fedora: python-psutil, Ubuntu: python-psutil, Arch: python2-psutil
 
 Download
 ~~~~~~~~

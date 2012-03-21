@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-version = '2.0beta7'
+version = '2.0beta8'
 
 f = open('README.rst')
 long_description = f.read().split('split here')[1]
@@ -25,6 +25,7 @@ setup(name='pyrasite',
           [console_scripts]
           pyrasite = pyrasite.main:main
           pyrasite-memory-viewer = pyrasite.tools.memory_viewer:main
+          pyrasite-shell = pyrasite.tools.shell:shell
       """,
       classifiers=[
           'Development Status :: 4 - Beta',

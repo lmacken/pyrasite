@@ -64,6 +64,13 @@ class PyrasiteIPC(object):
         self.pid = pid
         self.sock = None
 
+    def __enter__(self):
+        self.connect()
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.close()
+
     def connect(self):
         """
         Setup a communication socket with the process by injecting

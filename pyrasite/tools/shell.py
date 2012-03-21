@@ -28,16 +28,15 @@ def shell():
 
     pid = int(sys.argv[1])
     ipc = pyrasite.PyrasiteIPC(pid)
-    ipc.connect()
 
-    print("pyrasite shell %s" % pyrasite.__version__)
-    print(ipc.cmd('import sys; print("Python " + sys.version + ' +
-                  '" on " + sys.platform)'))
-    try:
-        while True:
-            print(ipc.cmd(raw_input('>>> ')))
-    except:
-        pass
+    with ipc:
+        print("pyrasite shell %s" % pyrasite.__version__)
+        print(ipc.cmd('import sys; print("Python " + sys.version + ' +
+                      '" on " + sys.platform)'))
+        try:
+            while True:
+                print(ipc.cmd(raw_input('>>> ')))
+        except:
+            pass
 
-    ipc.close()
     print()

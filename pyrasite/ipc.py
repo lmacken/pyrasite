@@ -99,9 +99,8 @@ class PyrasiteIPC(object):
         """Write out a reverse python connection payload with a custom port"""
         (fd, filename) = tempfile.mkstemp()
         tmp = os.fdopen(fd, 'w')
-        path = dirname(abspath(join(pyrasite.__file__, '..')))
-        payload = open(join(path, 'pyrasite', 'reverse.py'))
-        tmp.write('import sys; sys.path.insert(0, "%s")\n' % path)
+        path = dirname(abspath(pyrasite.__file__))
+        payload = open(join(path, 'reverse.py'))
 
         for line in payload.readlines():
             if line.startswith('#'):

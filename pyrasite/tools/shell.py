@@ -26,8 +26,7 @@ def shell():
         print("Usage: pyrasite-shell <PID>")
         sys.exit(1)
 
-    pid = int(sys.argv[1])
-    ipc = pyrasite.PyrasiteIPC(pid)
+    ipc = pyrasite.PyrasiteIPC(int(sys.argv[1]))
     ipc.connect()
 
     print("pyrasite shell %s" % pyrasite.__version__)

@@ -17,6 +17,7 @@
 
 import os
 import time
+import signal
 import subprocess
 
 def inject(pid, filename, verbose=False, gdb_prefix=''):
@@ -44,7 +45,7 @@ def inject(pid, filename, verbose=False, gdb_prefix=''):
         if verbose:
             print("GIL locked; trying again.")
         try:
-            p.kill()
+            os.kill(p.pid, signal.SIGHUP)
         except:
             pass
         time.sleep(0.5)

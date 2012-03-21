@@ -14,10 +14,11 @@ Contents
 ---------
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
    Installing
-   GUI
    CLI
+   Shell
+   GUI
    Payloads
    API

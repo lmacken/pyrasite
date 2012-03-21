@@ -5,9 +5,7 @@ Reverse Python Shell
 --------------------
 
 .. deprecated:: 2.0
-   Use the `pyrasite-shell
-   <http://readthedocs.org/docs/pyrasite/en/latest/CLI.html#pyrasite-shell>`_
-   tool instead.
+   Use the `pyrasite-shell <http://readthedocs.org/docs/pyrasite/en/latest/Shell.html>`_ instead
 
 This lets you easily introspect or alter any objects in your running process.
 
@@ -67,8 +65,8 @@ installed.
 .. image:: http://lewk.org/img/pyrasite-memory-viewer.png
 
 
-Reverse Shell
--------------
+Reverse Subprocess Shell
+------------------------
 
 .. literalinclude:: ../pyrasite/payloads/reverse_shell.py
    :language: python

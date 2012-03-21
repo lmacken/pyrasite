@@ -16,6 +16,7 @@
 # Copyright (C) 2011, 2012 Red Hat, Inc., Luke Macken <lmacken@redhat.com>
 
 import os
+import time
 import subprocess
 
 def inject(pid, filename, verbose=False, gdb_prefix=''):
@@ -39,3 +40,12 @@ def inject(pid, filename, verbose=False, gdb_prefix=''):
     if verbose:
         print(out)
         print(err)
+    if 'PyGILState_LOCKED' in out.decode('utf-8'):
+        if verbose:
+            print("GIL locked; trying again.")
+        try:
+            p.kill()
+        except:
+            pass
+        time.sleep(0.5)
+        inject(pid, filename, verbose, gdb_prefix)

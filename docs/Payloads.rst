@@ -4,6 +4,11 @@ Payloads
 Reverse Python Shell
 --------------------
 
+.. deprecated:: 2.0
+   Use the `pyrasite-shell
+   <http://readthedocs.org/docs/pyrasite/en/latest/CLI.html#pyrasite-shell>`_
+   tool instead.
+
 This lets you easily introspect or alter any objects in your running process.
 
 .. literalinclude:: ../pyrasite/payloads/reverse_python_shell.py

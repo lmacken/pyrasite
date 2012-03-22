@@ -18,6 +18,7 @@
 import os
 import sys
 import time
+import glob
 import unittest
 import textwrap
 import tempfile
@@ -85,81 +86,58 @@ class TestCodeInjection(unittest.TestCase):
         assert text in str(stdout), \
                 "Code injection failed: %s\n%s" % (stdout, stderr)
 
-    def test_threadless_injection(self):
-        p = self.run_python('-c "import time; time.sleep(2.0)"')
-        pyrasite.inject(p.pid, 'pyrasite/payloads/helloworld.py', verbose=True)
-        pyrasite.inject(p.pid, self.stop_payload, verbose=True)
-        stdout, stderr = p.communicate()
-        self.assert_output_contains(stdout, stderr, 'Hello World!')
-
-    def test_multithreaded_injection(self):
-        p = self.run_python(self.default_payload)
-        pyrasite.inject(p.pid, 'pyrasite/payloads/helloworld.py', verbose=True)
-        pyrasite.inject(p.pid, self.stop_payload, verbose=True)
-        stdout, stderr = p.communicate()
-        self.assert_output_contains(stdout, stderr, 'Hello World!')
+    def interpreters(self):
+        for exe in glob.glob('/usr/bin/python*.*'):
+            try:
+                minor_ver = int(exe.split('.')[-1])
+            except ValueError:
+                continue  # skip python2.7-config, etc
+            yield exe
 
     def test_many_threads_and_many_payloads(self):
         payload = self.generate_payload(threads=100)
-        p = self.run_python(payload)
+        for exe in self.interpreters():
+            p = self.run_python(payload, exe=exe)
 
-        total = 100
-        for i in range(total):
-            pyrasite.inject(p.pid,
-                    'pyrasite/payloads/helloworld.py', verbose=True)
+            total = 100
+            for i in range(total):
+                pyrasite.inject(p.pid,
+                        'pyrasite/payloads/helloworld.py', verbose=True)
 
-        pyrasite.inject(p.pid, self.stop_payload, verbose=True)
-        stdout, stderr = p.communicate()
+            pyrasite.inject(p.pid, self.stop_payload, verbose=True)
+            stdout, stderr = p.communicate()
 
-        count = 0
-        for line in stdout.decode('utf-8').split('\n'):
-            if line.strip() == 'Hello World!':
-                count += 1
+            count = 0
+            for line in stdout.decode('utf-8').split('\n'):
+                if line.strip() == 'Hello World!':
+                    count += 1
 
         os.unlink(payload)
 
         assert count == total, "Read %d hello worlds" % count
 
-    def test_injecting_into_the_same_interpreter(self):
-        print("sys.executable = %s" % sys.executable)
-        p = self.run_python('-c "import time; time.sleep(2.0)"', exe=sys.executable)
-        pyrasite.inject(p.pid, 'pyrasite/payloads/helloworld.py', verbose=True)
-        stdout, stderr = p.communicate()
-        self.assert_output_contains(stdout, stderr, 'Hello World!')
+    def test_threadless_injection_into_all_interpreters(self):
+        for exe in self.interpreters():
+            print("sys.executable = %s" % sys.executable)
+            print("injecting into %s" % exe)
+            p = self.run_python('-c "import time; time.sleep(2.0)"', exe=exe)
+            pyrasite.inject(p.pid, 'pyrasite/payloads/helloworld.py', verbose=True)
+            stdout, stderr = p.communicate()
+            self.assert_output_contains(stdout, stderr, 'Hello World!')
 
-    def test_injecting_threads_into_the_same_interpreter(self):
-        if sys.version_info[0] == 3: exe = 'python3'
-        else: exe = 'python2'
-        print("sys.executable = %s" % sys.executable)
+    def test_injecting_threads_into_all_interpreters(self):
         payload = self.generate_payload(threads=10)
-        p = self.run_python(payload, exe=exe)
-        pyrasite.inject(p.pid, 'pyrasite/payloads/helloworld.py', verbose=True)
-        pyrasite.inject(p.pid, self.stop_payload, verbose=True)
-        stdout, stderr = p.communicate()
-        os.unlink(payload)
-        self.assert_output_contains(stdout, stderr, 'Hello World!')
-
-    def test_injecting_into_different_interpreter_version(self):
-        if sys.version_info[0] == 3: exe = 'python2'
-        else: exe = 'python3'
-        print("sys.executable = %s" % sys.executable)
-        print("injecting into %s" % exe)
-        p = self.run_python('-c "import time; time.sleep(2.0)"', exe=exe)
-        pyrasite.inject(p.pid, 'pyrasite/payloads/helloworld.py', verbose=True)
-        stdout, stderr = p.communicate()
-        self.assert_output_contains(stdout, stderr, 'Hello World!')
-
-    def test_injecting_threads_into_different_interpreter(self):
-        if sys.version_info[0] == 3: exe = 'python2'
-        else: exe = 'python3'
-        print("sys.executable = %s" % sys.executable)
-        payload = self.generate_payload(threads=10)
-        p = self.run_python(payload, exe=exe)
-        pyrasite.inject(p.pid, 'pyrasite/payloads/helloworld.py', verbose=True)
-        pyrasite.inject(p.pid, self.stop_payload, verbose=True)
-        stdout, stderr = p.communicate()
-        os.unlink(payload)
-        self.assert_output_contains(stdout, stderr, 'Hello World!')
+        try:
+            for exe in self.interpreters():
+                print("sys.executable = %s" % sys.executable)
+                print("injecting into %s" % exe)
+                p = self.run_python(payload, exe=exe)
+                pyrasite.inject(p.pid, 'pyrasite/payloads/helloworld.py', verbose=True)
+                pyrasite.inject(p.pid, self.stop_payload, verbose=True)
+                stdout, stderr = p.communicate()
+                self.assert_output_contains(stdout, stderr, 'Hello World!')
+        finally:
+            os.unlink(payload)
 
 
 if __name__ == '__main__':

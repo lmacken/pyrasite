@@ -175,7 +175,7 @@ class PyrasiteIPC(object):
     def close(self):
         if self.sock:
             self.sock.close()
-        if self.server_sock:
+        if getattr(self, 'server_sock', None):
             self.server_sock.close()
 
     def __repr__(self):

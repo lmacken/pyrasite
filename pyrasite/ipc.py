@@ -180,6 +180,3 @@ class PyrasiteIPC(object):
 
     def __repr__(self):
         return "<%s %s>" % (self.__class__.__name__, self.pid)
-
-    def __str__(self):
-        return self.title

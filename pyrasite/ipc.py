@@ -64,6 +64,8 @@ class PyrasiteIPC(object):
         self.pid = pid
         self.sock = None
         self.server_sock = None
+        self.hostname = None
+        self.port = None
 
     def connect(self):
         """

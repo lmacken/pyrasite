@@ -16,6 +16,7 @@
 # Copyright (C) 2011, 2012 Red Hat, Inc.
 
 import os
+import signal
 import unittest
 import subprocess
 
@@ -30,7 +31,7 @@ class TestIPC(unittest.TestCase):
         self.ipc = pyrasite.PyrasiteIPC(self.p.pid)
 
     def tearDown(self):
-        self.p.terminate()
+        os.kill(self.p.pid, signal.SIGTERM)
         self.ipc.close()
 
     def test_listen(self):

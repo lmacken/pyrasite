@@ -160,7 +160,7 @@ class PyrasiteIPC(object):
                 if len(data) == msg_len:
                     return data
         else:
-            return self.sock.recv(4096)
+            return self.sock.recv(4096).decode('utf-8')
 
     def recv_bytes(self, n):
         """Receive n bytes from a socket"""

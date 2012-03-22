@@ -37,6 +37,7 @@ class ReverseConnection(threading.Thread, pyrasite.PyrasiteIPC):
 
     host = 'localhost'
     port = 9001
+    reliable = True
 
     def __init__(self, host=None, port=None):
         super(ReverseConnection, self).__init__()

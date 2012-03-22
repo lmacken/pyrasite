@@ -112,7 +112,8 @@ class PyrasiteIPC(object):
             if line.startswith('#'):
                 continue
             line = line.replace('port = 9001', 'port = %d' % self.port)
-            line = line.replace('reliable = False', 'reliable = True')
+            if not self.reliable:
+                line = line.replace('reliable = True', 'reliable = False')
             tmp.write(line)
 
         tmp.write('ReversePythonConnection().start()\n')

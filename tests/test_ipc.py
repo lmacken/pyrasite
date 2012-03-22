@@ -30,7 +30,7 @@ class TestIPC(unittest.TestCase):
         self.ipc = pyrasite.PyrasiteIPC(self.p.pid)
 
     def tearDown(self):
-        self.p.kill()
+        self.p.terminate()
         self.ipc.close()
 
     def test_listen(self):
@@ -57,6 +57,15 @@ class TestIPC(unittest.TestCase):
     def test_cmd(self):
         self.ipc.connect()
         assert self.ipc.cmd('print("mu")') == 'mu\n'
+
+    def test_unreliable(self):
+        self.ipc.reliable = False
+        self.ipc.connect()
+        out = self.ipc.cmd('print("mu")')
+        assert out == 'mu\n', out
+
+    def test_repr(self):
+        assert repr(self.ipc)
 
 
 if __name__ == '__main__':

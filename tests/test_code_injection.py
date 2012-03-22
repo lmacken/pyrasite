@@ -78,6 +78,7 @@ class TestCodeInjection(unittest.TestCase):
                 shell=True, stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE)
         subprocesses.append(p)
+        time.sleep(0.5)
         return p
 
     def assert_output_contains(self, stdout, stderr, text):
@@ -85,9 +86,7 @@ class TestCodeInjection(unittest.TestCase):
                 "Code injection failed: %s\n%s" % (stdout, stderr)
 
     def test_threadless_injection(self):
-        cmd = 'python -c "import time; time.sleep(0.5)"'
-        p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE)
+        p = self.run_python('-c "import time; time.sleep(2.0)"')
         pyrasite.inject(p.pid, 'pyrasite/payloads/helloworld.py', verbose=True)
         pyrasite.inject(p.pid, self.stop_payload, verbose=True)
         stdout, stderr = p.communicate()
@@ -95,7 +94,6 @@ class TestCodeInjection(unittest.TestCase):
 
     def test_multithreaded_injection(self):
         p = self.run_python(self.default_payload)
-        time.sleep(0.5)
         pyrasite.inject(p.pid, 'pyrasite/payloads/helloworld.py', verbose=True)
         pyrasite.inject(p.pid, self.stop_payload, verbose=True)
         stdout, stderr = p.communicate()
@@ -104,7 +102,6 @@ class TestCodeInjection(unittest.TestCase):
     def test_many_threads_and_many_payloads(self):
         payload = self.generate_payload(threads=100)
         p = self.run_python(payload)
-        time.sleep(0.5)
 
         total = 100
         for i in range(total):
@@ -125,10 +122,7 @@ class TestCodeInjection(unittest.TestCase):
 
     def test_injecting_into_the_same_interpreter(self):
         print("sys.executable = %s" % sys.executable)
-        cmd = '%s -c "import time; time.sleep(2.0)"' % sys.executable
-        p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE)
-        time.sleep(0.5)
+        p = self.run_python('-c "import time; time.sleep(2.0)"', exe=sys.executable)
         pyrasite.inject(p.pid, 'pyrasite/payloads/helloworld.py', verbose=True)
         stdout, stderr = p.communicate()
         self.assert_output_contains(stdout, stderr, 'Hello World!')
@@ -139,23 +133,18 @@ class TestCodeInjection(unittest.TestCase):
         print("sys.executable = %s" % sys.executable)
         payload = self.generate_payload(threads=10)
         p = self.run_python(payload, exe=exe)
-        time.sleep(0.5)
         pyrasite.inject(p.pid, 'pyrasite/payloads/helloworld.py', verbose=True)
         pyrasite.inject(p.pid, self.stop_payload, verbose=True)
         stdout, stderr = p.communicate()
         os.unlink(payload)
-        assert 'Hello World!' in str(stdout), \
-               "Code injection failed: %s\n%s" % (stdout, stderr)
+        self.assert_output_contains(stdout, stderr, 'Hello World!')
 
     def test_injecting_into_different_interpreter_version(self):
         if sys.version_info[0] == 3: exe = 'python2'
         else: exe = 'python3'
         print("sys.executable = %s" % sys.executable)
         print("injecting into %s" % exe)
-        cmd = '%s -c "import time; time.sleep(2.0)"' % exe
-        p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE)
-        time.sleep(0.5)
+        p = self.run_python('-c "import time; time.sleep(2.0)"', exe=exe)
         pyrasite.inject(p.pid, 'pyrasite/payloads/helloworld.py', verbose=True)
         stdout, stderr = p.communicate()
         self.assert_output_contains(stdout, stderr, 'Hello World!')
@@ -166,7 +155,6 @@ class TestCodeInjection(unittest.TestCase):
         print("sys.executable = %s" % sys.executable)
         payload = self.generate_payload(threads=10)
         p = self.run_python(payload, exe=exe)
-        time.sleep(0.5)
         pyrasite.inject(p.pid, 'pyrasite/payloads/helloworld.py', verbose=True)
         pyrasite.inject(p.pid, self.stop_payload, verbose=True)
         stdout, stderr = p.communicate()

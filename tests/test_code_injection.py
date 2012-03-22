@@ -79,6 +79,10 @@ class TestCodeInjection(unittest.TestCase):
                 shell=True, stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE)
         subprocesses.append(p)
+        # FIXME: Hack to ensure that python (3, specifically) fully loads
+        # before we inject code into it. To optimize this, we should
+        # have the payload print something out once it's loaded, then
+        # we should ensure this happens before injecting.
         time.sleep(0.5)
         return p
 

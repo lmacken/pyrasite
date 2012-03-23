@@ -56,8 +56,7 @@ class TestCodeInjection(unittest.TestCase):
         (fd, filename) = tempfile.mkstemp()
         tmp = os.fdopen(fd, 'w')
         script = textwrap.dedent("""
-            import time, threading
-            from random import SystemRandom as random
+            import time, threading, random
             running = True
             def cpu_bound():
                 i = 2
@@ -68,8 +67,9 @@ class TestCodeInjection(unittest.TestCase):
                     y += fib(i)
                     i += 1
             def io_bound():
+                rand = SystemRandom()
                 while running:
-                    random.random()
+                    rand.random()
         """)
         # CPU-bound threads
         for t in range(cpu_threads):

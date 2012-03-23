@@ -158,8 +158,8 @@ class TestCodeInjection(unittest.TestCase):
             stdout, stderr = p.communicate()
 
             count = 0
-            for line in unicode(stdout, 'utf-8').split(u'\n'):
-                if line.strip() == u'Hello World!':
+            for line in stdout.decode('utf-8').split('\n'):
+                if line.strip() == 'Hello World!':
                     count += 1
 
         os.unlink(program)

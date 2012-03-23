@@ -139,7 +139,7 @@ class PyrasiteIPC(object):
         """
         Send a python command to exec in the process and return the output
         """
-        self.send(cmd + u'\n')
+        self.send(cmd + '\n')
         return self.recv()
 
     def send(self, data):

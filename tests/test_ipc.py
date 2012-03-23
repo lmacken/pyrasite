@@ -57,13 +57,13 @@ class TestIPC(unittest.TestCase):
 
     def test_cmd(self):
         self.ipc.connect()
-        assert self.ipc.cmd('print("mu")') == 'mu\n'
+        assert self.ipc.cmd(u'print("mu")') == u'mu\n'
 
     def test_unreliable(self):
         self.ipc.reliable = False
         self.ipc.connect()
-        out = self.ipc.cmd('print("mu")')
-        assert out == 'mu\n', out
+        out = self.ipc.cmd(u'print("mu")')
+        assert out == u'mu\n', out
 
     def test_repr(self):
         assert repr(self.ipc)

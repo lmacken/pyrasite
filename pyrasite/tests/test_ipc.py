@@ -16,22 +16,21 @@
 # Copyright (C) 2011, 2012 Red Hat, Inc.
 
 import os
-import signal
 import unittest
-import subprocess
 
 import pyrasite
+from pyrasite.tests.utils import run_program, generate_program, stop_program
 
 
 class TestIPC(unittest.TestCase):
 
     def setUp(self):
-        self.p = subprocess.Popen('python -c "import time; time.sleep(5.0)"',
-                shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        self.prog = generate_program()
+        self.p = run_program(self.prog)
         self.ipc = pyrasite.PyrasiteIPC(self.p.pid)
 
     def tearDown(self):
-        os.kill(self.p.pid, signal.SIGTERM)
+        stop_program(self.p)
         self.ipc.close()
 
     def test_listen(self):

@@ -18,15 +18,41 @@
 import os
 import sys
 import argparse
+import subprocess
 
 import pyrasite
 
 
+def ptrace_check():
+    ptrace_scope = '/proc/sys/kernel/yama/ptrace_scope'
+    if os.path.exists(ptrace_scope):
+        f = open(ptrace_scope)
+        value = int(f.read().strip())
+        f.close()
+        if value == 1:
+            print("WARNING: ptrace is disabled. Injection will not work.")
+            print("You can enable it by running the following:")
+            print("echo 0 | sudo tee /proc/sys/kernel/yama/ptrace_scope")
+            print("")
+    else:
+        getsebool = '/usr/sbin/getsebool'
+        if os.path.exists(getsebool):
+            p = subprocess.Popen([getsebool, 'deny_ptrace'],
+                    stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            out, err = p.communicate()
+            if out.decode('utf-8') == u'deny_ptrace --> off\n':
+                print("WARNING: ptrace is disabled. Injection will not work.")
+                print("You can enable it by running the following:")
+                print("sudo setsebool -P deny_ptrace=off")
+                print("")
+
+
 def main():
+    ptrace_check()
+
     parser = argparse.ArgumentParser(
-        description='pyrasite - inject code into a running python process',
-        epilog="For updates, visit https://github.com/lmacken/pyrasite"
-        )
+            description='pyrasite - inject code into a running python process',
+            epilog="For updates, visit https://github.com/lmacken/pyrasite")
     parser.add_argument('pid',
                         help="The ID of the process to inject code into")
     parser.add_argument('filename',

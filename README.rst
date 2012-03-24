@@ -3,8 +3,7 @@ pyrasite
 
 .. split here
 
-Pyrasite lets you to inject arbitrary code into an unaltered running Python
-process.
+Pyrasite lets you to inject arbitrary code into running Python processes.
 
 :documentation: http://pyrasite.com
 :download: http://pypi.python.org/pypi/pyrasite
@@ -14,19 +13,31 @@ process.
 :jenkins: http://ci.csh.rit.edu/view/Pyrasite
 :irc: #pyrasite on Freenode
 
+Requirements
+~~~~~~~~~~~~
+
+ * `gdb <https://www.gnu.org/s/gdb>`_ (version 7.3+)
+
+Compatiblity
+~~~~~~~~~~~~
+
+Pyrasite works with Python 2.4 and newer. Injection works between versions
+as well, so you can run Pyrasite under Python 3 and inject into 2, and
+vice versa.
+
 pyrasite-gui
 ~~~~~~~~~~~~
 
-The gui has been moved into it's own repository: https://github.com/lmacken/pyrasite-gui
+The graphical interface can be found here: https://github.com/lmacken/pyrasite-gui
 
 .. image:: http://lewk.org/img/pyrasite/pyrasite-info-thumb.png
 
 Authors
 ~~~~~~~
 
-Luke Macken (`@lmacken <http://twitter.com/lmacken>`_)
+`Luke Macken <http://twitter.com/lmacken>`_
 
 .. image:: http://api.coderwall.com/lmacken/endorsecount.png
    :target: http://coderwall.com/lmacken
 
-David Malcolm (dmalcolm ~ redhat ~com)
+David Malcolm <dmalcolm@redhat.com>

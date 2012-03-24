@@ -52,11 +52,11 @@ class TestCodeInjection(unittest.TestCase):
         self.stop_program = stop_program = self.generate_program_stopper()
         self.default_program = default_program = self.generate_program()
 
-    def generate_program(self, cpu_threads=1, io_threads=1):
+    def generate_program(self, threads=1):
         (fd, filename) = tempfile.mkstemp()
         tmp = os.fdopen(fd, 'w')
         script = textwrap.dedent("""
-            import time, threading, random
+            import os, time, threading, random
             running = True
             def cpu_bound():
                 i = 2
@@ -66,17 +66,15 @@ class TestCodeInjection(unittest.TestCase):
                 while running:
                     y += fib(i)
                     i += 1
-            def io_bound():
-                rand = SystemRandom()
+            def sleeper():
                 while running:
-                    rand.random()
+                    time.sleep(random.random())
+            threading.Thread(target=sleeper).start()
         """)
         # CPU-bound threads
-        for t in range(cpu_threads):
+        for t in range(threads):
             script += "threading.Thread(target=cpu_bound).start()\n"
-        # I/O bound (/dev/urandom)
-        for t in range(io_threads):
-            script += "threading.Thread(target=io_bound).start()\n"
+        script += "open('/tmp/pyrasite_%d' % os.getpid(), 'w').close()"
         tmp.write(script)
         tmp.close()
         return filename
@@ -100,11 +98,10 @@ class TestCodeInjection(unittest.TestCase):
                 shell=True, stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE)
         pids.append(p.pid)
-        # FIXME: Hack to ensure that python (3, specifically) fully loads
-        # before we inject code into it. To optimize this, we should
-        # have the program print something out once it's loaded, then
-        # we should ensure this happens before injecting.
-        time.sleep(0.5)
+        flag = '/tmp/pyrasite_%d' % p.pid
+        while not os.path.exists(flag):
+            time.sleep(0.1)
+        os.unlink(flag)
         return p
 
     def assert_output_contains(self, stdout, stderr, text):
@@ -119,18 +116,8 @@ class TestCodeInjection(unittest.TestCase):
                 continue  # skip python2.7-config, etc
             yield exe
 
-    def test_injection_into_all_interpreters_with_no_threads(self):
-        for exe in self.interpreters():
-            print("sys.executable = %s" % sys.executable)
-            print("injecting into %s" % exe)
-            p = self.run_python('-c "import time; time.sleep(2.0)"', exe=exe)
-            pyrasite.inject(p.pid,
-                    'pyrasite/payloads/helloworld.py', verbose=True)
-            stdout, stderr = p.communicate()
-            self.assert_output_contains(stdout, stderr, 'Hello World!')
-
-    def test_injecting_into_all_interpreters_with_gil_contention(self):
-        program = self.generate_program(cpu_threads=3, io_threads=3)
+    def test_injecting_into_all_interpreters(self):
+        program = self.generate_program(threads=3)
         try:
             for exe in self.interpreters():
                 print("sys.executable = %s" % sys.executable)
@@ -145,11 +132,10 @@ class TestCodeInjection(unittest.TestCase):
             os.unlink(program)
 
     def test_many_payloads_into_program_with_many_threads(self):
-        program = self.generate_program(cpu_threads=3, io_threads=3)
+        program = self.generate_program(threads=50)
         for exe in self.interpreters():
             p = self.run_python(program, exe=exe)
-
-            total = 100
+            total = 50
             for i in range(total):
                 pyrasite.inject(p.pid,
                         'pyrasite/payloads/helloworld.py', verbose=True)

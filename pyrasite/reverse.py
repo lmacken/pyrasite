@@ -37,6 +37,7 @@ class ReverseConnection(threading.Thread, pyrasite.PyrasiteIPC):
 
     host = 'localhost'
     port = 9001
+    reliable = True
 
     def __init__(self, host=None, port=None):
         super(ReverseConnection, self).__init__()
@@ -61,19 +62,20 @@ class ReverseConnection(threading.Thread, pyrasite.PyrasiteIPC):
                     af, socktype, proto, canonname, sa = res
                     try:
                         self.sock = socket.socket(af, socktype, proto)
+                        try:
+                            self.sock.connect(sa)
+                        except socket.error:
+                            self.sock.close()
+                            self.sock = None
+                            continue
                     except socket.error:
-                        self.sock = None
-                        continue
-                    try:
-                        self.sock.connect(sa)
-                    except socket.error:
-                        self.sock.close()
                         self.sock = None
                         continue
                     break
 
                 if not self.sock:
-                    raise Exception('pyrasite cannot establish reverse connection to %s:%d' % (self.host, self.port))
+                    raise Exception('pyrasite cannot establish reverse ' +
+                            'connection to %s:%d' % (self.host, self.port))
 
                 self.on_connect()
 

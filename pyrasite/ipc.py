@@ -63,6 +63,9 @@ class PyrasiteIPC(object):
         super(PyrasiteIPC, self).__init__()
         self.pid = pid
         self.sock = None
+        self.server_sock = None
+        self.hostname = None
+        self.port = None
 
     def connect(self):
         """
@@ -80,20 +83,23 @@ class PyrasiteIPC(object):
             af, socktype, proto, canonname, sa = res
             try:
                 self.server_sock = socket.socket(af, socktype, proto)
+                try:
+                    self.server_sock.bind(sa)
+                    self.server_sock.listen(1)
+                except socket.error:
+                    self.server_sock.close()
+                    self.server_sock = None
+                    continue
             except socket.error:
-                self.server_sock = None
-                continue
-            try:
-                self.server_sock.bind(sa)
-                self.server_sock.listen(1)
-            except socket.error:
-                self.server_sock.close()
                 self.server_sock = None
                 continue
             break
 
-        self.hostname, self.port = self.server_sock.getsockname()[0:2]
-        self.running = True
+        if not self.server_sock:
+            raise Exception('pyrasite was unable to setup a ' +
+                    'local server socket')
+        else:
+            self.hostname, self.port = self.server_sock.getsockname()[0:2]
 
     def create_payload(self):
         """Write out a reverse python connection payload with a custom port"""
@@ -106,7 +112,8 @@ class PyrasiteIPC(object):
             if line.startswith('#'):
                 continue
             line = line.replace('port = 9001', 'port = %d' % self.port)
-            line = line.replace('reliable = False', 'reliable = True')
+            if not self.reliable:
+                line = line.replace('reliable = True', 'reliable = False')
             tmp.write(line)
 
         tmp.write('ReversePythonConnection().start()\n')
@@ -153,7 +160,7 @@ class PyrasiteIPC(object):
                 if len(data) == msg_len:
                     return data
         else:
-            return self.sock.recv(4096)
+            return self.sock.recv(4096).decode('utf-8')
 
     def recv_bytes(self, n):
         """Receive n bytes from a socket"""
@@ -168,9 +175,8 @@ class PyrasiteIPC(object):
     def close(self):
         if self.sock:
             self.sock.close()
+        if getattr(self, 'server_sock', None):
+            self.server_sock.close()
 
     def __repr__(self):
         return "<%s %s>" % (self.__class__.__name__, self.pid)
-
-    def __str__(self):
-        return self.title

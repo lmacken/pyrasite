@@ -23,9 +23,11 @@ import os
 import socket
 import struct
 import tempfile
-import pyrasite
+import subprocess
 
 from os.path import dirname, abspath, join
+
+import pyrasite
 
 
 class PyrasiteIPC(object):
@@ -66,6 +68,14 @@ class PyrasiteIPC(object):
         self.server_sock = None
         self.hostname = None
         self.port = None
+
+    @property
+    def title(self):
+        if not getattr(self, '_title', None):
+            p = subprocess.Popen('ps --no-heading -o cmd= -p %d' % self.pid,
+                                 stdout=subprocess.PIPE, shell=True)
+            self._title = p.communicate()[0].decode('utf-8')
+        return self._title.strip()
 
     def connect(self):
         """

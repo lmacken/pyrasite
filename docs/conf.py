@@ -43,7 +43,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'pyrasite'
-copyright = u'2011, 2012, Luke Macken'
+copyright = u'2011-2012, Red Hat, Inc., Luke Macken'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the

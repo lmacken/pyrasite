@@ -5,7 +5,8 @@ pyrasite
 
 Pyrasite lets you to inject arbitrary code into running Python processes.
 
-:documentation: http://pyrasite.com
+:homepage: http://pyrasite.com
+:documentation: http://pyrasite.rtfd.org
 :download: http://pypi.python.org/pypi/pyrasite
 :source: http://github.com/lmacken/pyrasite
 :screenshots: http://readthedocs.org/docs/pyrasite/en/latest/GUI.html
@@ -16,7 +17,7 @@ Pyrasite lets you to inject arbitrary code into running Python processes.
 Requirements
 ~~~~~~~~~~~~
 
- * `gdb <https://www.gnu.org/s/gdb>`_ (version 7.3+)
+ * `gdb <https://www.gnu.org/s/gdb>`_ (version 7.3+ (or RHEL5+))
 
 Compatiblity
 ~~~~~~~~~~~~

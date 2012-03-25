@@ -1,5 +1,5 @@
-pyrasite-gui - A graphical interface for Pyrasite
-=================================================
+``pyrasite-gui`` - A graphical interface for Pyrasite
+=====================================================
 
 The pyrasite-gui is a graphical interface for Pyrasite that lets you
 easily monitor, analyze, introspect, and alter running Python programs.

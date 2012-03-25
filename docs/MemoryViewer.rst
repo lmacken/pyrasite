@@ -1,5 +1,5 @@
-pyrasite-memory-viewer - View the largest objects in your process
------------------------------------------------------------------
+``pyrasite-memory-viewer`` - View the largest objects in your process
+=====================================================================
 
 Pyrasite provides a tool to view object memory usage statistics, and the
 live value, of largest objects in your process. This requires `urwid

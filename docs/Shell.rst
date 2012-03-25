@@ -1,5 +1,5 @@
-pyrasite-shell - Give it a pid, get a shell
-===========================================
+``pyrasite-shell`` - Give it a pid, get a shell
+===============================================
 
 You can easily drop into a shell and execute commands in a running process
 using the ``pyrasite-shell``.

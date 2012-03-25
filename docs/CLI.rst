@@ -1,5 +1,5 @@
-pyrasite - Inject arbitrary code into a running Python process
-==============================================================
+``pyrasite`` - Inject arbitrary code into a running Python process
+==================================================================
 
 ::
 

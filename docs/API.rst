@@ -1,5 +1,5 @@
-Pyrasite API
-============
+API
+===
 
 .. autofunction:: pyrasite.inject
 

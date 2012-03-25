@@ -1,35 +1,21 @@
-Payloads
-========
+Example Payloads
+================
 
-Viewing the largest objects in your process
--------------------------------------------
+These payloads can be found in the `pyrasite/payloads
+<https://github.com/lmacken/pyrasite/tree/master/pyrasite/payloads>`_
+directory.
 
-Pyrasite provides a tool to view object memory usage statistics, and the
-live value, of largest objects in your process. This requires `urwid
-<http://pypi.python.org/pypi/urwid>`_ and `meliae
-<https://launchpad.net/meliae>`_ to be installed.
+Dumping thread stacks
+---------------------
 
-::
-
-    $ pyrasite-memory-viewer <PID>
-
-
-.. image:: http://lewk.org/img/pyrasite-memory-viewer.png
-
-.. note:: We recommend using python-meliae from your OS distribution, if available.  If it is not, you will need to first install Cython, and then meliae seperately. If pip/easy_install does not work, you may need to use the tarball from the upstream website.
-
-This tool automatically injects the following payload:
-
-.. literalinclude:: ../pyrasite/payloads/dump_memory.py
+.. literalinclude:: ../pyrasite/payloads/dump_stacks.py
    :language: python
-   :start-after: html
 
-You can easily dump the object memory usage JSON data by hand, if you wish:
+Viewing loaded modules
+----------------------
 
-::
-
-    $ pyrasite <PID> pyrasite/payloads/dump_memory.py
-
+.. literalinclude:: ../pyrasite/payloads/dump_modules.py
+   :language: python
 
 Call Graph
 ----------
@@ -40,48 +26,20 @@ graph using `pycallgraph <http://pycallgraph.slowchop.com>`_.
 .. literalinclude:: ../pyrasite/payloads/start_callgraph.py
    :language: python
    :start-after: http
+
 .. literalinclude:: ../pyrasite/payloads/stop_callgraph.py
    :language: python
    :start-after: http
 
-::
-
-    $ pyrasite <PID> pyrasite/payloads/start_callgraph.py
-    $ pyrasite <PID> pyrasite/payloads/stop_callgraph.py
 
 The callgraph is then generated using `graphviz <http://www.graphviz.org>`_ and
 saved to `callgraph.png`. You can see an example callgraph `here <http://pycallgraph.slowchop.com/pycallgraph/wiki/RegExpExample>`_.
-
-
-Viewing loaded modules
-----------------------
-
-.. literalinclude:: ../pyrasite/payloads/dump_modules.py
-   :language: python
-
-::
-
-    $ pyrasite <PID> pyrasite/payloads/dump_modules.py
-
-Dumping thread stacks
----------------------
-
-.. literalinclude:: ../pyrasite/payloads/dump_stacks.py
-   :language: python
-
-::
-
-    $ pyrasite <PID> pyrasite/payloads/dump_stacks.py
 
 Forcing garbage collection
 ---------------------------
 
 .. literalinclude:: ../pyrasite/payloads/force_garbage_collection.py
    :language: python
-
-::
-
-    $ pyrasite <PID> pyrasite/payloads/force_garbage_collection.py
 
 Reverse Subprocess Shell
 ------------------------

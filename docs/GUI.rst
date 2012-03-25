@@ -1,9 +1,12 @@
 pyrasite-gui - A graphical interface for Pyrasite
 =================================================
 
-The GUI has been moved into it's own repository:
+The pyrasite-gui is a graphical interface for Pyrasite that lets you
+easily monitor, analyze, introspect, and alter running Python programs.
 
-https://github.com/lmacken/pyrasite-gui
+:source: https://github.com/lmacken/pyrasite-gui
+:download: http://pypi.python.org/pypi/pyrasite-gui
+:requirements: http://readthedocs.org/docs/pyrasite/en/latest/Installing.html#gui
 
 .. image:: http://lewk.org/img/pyrasite/pyrasite-info.png
 

@@ -1,5 +1,5 @@
-pyrasite - A command-line interface for injecting code into a running Python process
-====================================================================================
+pyrasite - Inject arbitrary code into a running Python process
+==============================================================
 
 ::
 

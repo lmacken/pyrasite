@@ -5,5 +5,5 @@
 # https://launchpad.net/meliae
 # http://jam-bazaar.blogspot.com/2009/11/memory-debugging-with-meliae.html
 
-import os, meliae
+import os, meliae.scanner
 meliae.scanner.dump_all_objects('/tmp/pyrasite-%d-objects.json' % os.getpid())

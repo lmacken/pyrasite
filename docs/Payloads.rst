@@ -41,6 +41,14 @@ Forcing garbage collection
 .. literalinclude:: ../pyrasite/payloads/force_garbage_collection.py
    :language: python
 
+Dumping out object memory usage statistics
+------------------------------------------
+
+.. literalinclude:: ../pyrasite/payloads/dump_memory.py
+   :language: python
+
+.. seealso:: :doc:`MemoryViewer`
+
 Reverse Subprocess Shell
 ------------------------
 

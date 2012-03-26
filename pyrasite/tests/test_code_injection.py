@@ -18,6 +18,7 @@
 import os
 import sys
 import unittest
+import subprocess
 
 import pyrasite
 
@@ -65,6 +66,21 @@ class TestCodeInjection(unittest.TestCase):
         finally:
             os.unlink(program)
 
+    def test_pyrasite_script(self):
+        program = generate_program()
+        try:
+            for exe in interpreters():
+                print("sys.executable = %s" % sys.executable)
+                print("injecting into %s" % exe)
+                p = run_program(program, exe=exe)
+                subprocess.call([sys.executable, 'pyrasite/main.py',
+                    str(p.pid), 'pyrasite/payloads/helloworld.py'],
+                    env={'PYTHONPATH': os.getcwd()})
+                stop_program(p)
+                stdout, stderr = p.communicate()
+                self.assert_output_contains(stdout, stderr, 'Hello World!')
+        finally:
+            os.unlink(program)
 
 if __name__ == '__main__':
     unittest.main()

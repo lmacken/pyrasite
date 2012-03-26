@@ -111,4 +111,5 @@ Since version 10.10, Ubuntu ships with a `controversial patch <https://lkml.org/
 
     echo 0 > /proc/sys/kernel/yama/ptrace_scope
 
-
+You can make this change permanent by setting ``ptrace_scope`` to ``0`` in
+``/etc/sysctl.d/10-ptrace.conf``.

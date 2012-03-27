@@ -8,11 +8,11 @@ long_description = f.read().split('split here')[1]
 f.close()
 
 requirements = []
-if sys.version_info.major == 3:
-    if sys.version_info.minor < 2:
+if sys.version_info[0] == 3:
+    if sys.version_info[1] < 2:
         requirements.append('argparse')
-elif sys.version_info.major == 2:
-    if sys.version_info.minor < 7:
+elif sys.version_info[0] == 2:
+    if sys.version_info[1] < 7:
         requirements.append('argparse')
 
 setup(name='pyrasite',

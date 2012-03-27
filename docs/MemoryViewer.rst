@@ -13,8 +13,6 @@ live value, of largest objects in your process. This requires `urwid
 
 .. image:: http://lewk.org/img/pyrasite-memory-viewer.png
 
-.. note:: We recommend using python-meliae from your OS distribution, if available.  If it is not, you will need to first install Cython, and then meliae seperately. If pip/easy_install does not work, you may need to use the tarball from the upstream website.
-
 This tool automatically injects the following payload:
 
 .. literalinclude:: ../pyrasite/payloads/dump_memory.py

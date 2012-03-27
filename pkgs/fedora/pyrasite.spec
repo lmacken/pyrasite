@@ -14,8 +14,9 @@ BuildArch:        noarch
 BuildRequires:    python-devel
 BuildRequires:    python-setuptools-devel
 BuildRequires:    python-nose
+BuildRequires:    python-sphinx
 
-Requires:         gdb >= 7.3
+Requires:         gdb
 
 %if 0%{?rhel} <= 6
 BuildRequires:    python-argparse
@@ -32,16 +33,21 @@ also comes with a variety of example payloads.
 
 %build
 %{__python} setup.py build
+PYTHONPATH=$(pwd) make -C docs man
 
 %check
 %{__python} setup.py test
 
 %install
 %{__python} setup.py install -O1 --skip-build --root $RPM_BUILD_ROOT
+%{__python} setup.py install -O1 --skip-build --root %{buildroot}
+%{__mkdir_p} %{buildroot}%{_mandir}/man1
+%{__gzip} -c docs/_build/man/pyrasite.1 > %{buildroot}/%{_mandir}/man1/pyrasite.1.gz
 
 %files
 %defattr(-,root,root,-)
-%doc README.rst
+%doc README.rst LICENSE docs
+%doc %{_mandir}/man1/pyrasite.1.gz
 %{_bindir}/pyrasite
 %{_bindir}/pyrasite-memory-viewer
 %{_bindir}/pyrasite-shell

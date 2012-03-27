@@ -33,7 +33,7 @@ also comes with a variety of example payloads.
 
 %build
 %{__python} setup.py build
-PYTHONPATH=$(pwd) make -C docs man
+%{__make} -C docs man
 
 %check
 %{__python} setup.py test

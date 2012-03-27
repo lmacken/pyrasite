@@ -1,3 +1,4 @@
+import sys
 from setuptools import setup, find_packages
 
 version = '2.0beta9'
@@ -5,6 +6,14 @@ version = '2.0beta9'
 f = open('README.rst')
 long_description = f.read().split('split here')[1]
 f.close()
+
+requirements = []
+if sys.version_info.major == 3:
+    if sys.version_info.minor < 2:
+        requirements.append('argparse')
+elif sys.version_info.major == 2:
+    if sys.version_info.minor < 7:
+        requirements.append('argparse')
 
 setup(name='pyrasite',
       version=version,
@@ -18,7 +27,7 @@ setup(name='pyrasite',
       packages=find_packages(exclude=['ez_setup', 'examples', 'tests']),
       include_package_data=True,
       zip_safe=False,
-      install_requires=[],
+      install_requires=requirements,
       tests_require=['nose'],
       test_suite='nose.collector',
       entry_points="""

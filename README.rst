@@ -36,5 +36,12 @@ The graphical interface can be found here: https://github.com/lmacken/pyrasite-g
 Authors
 ~~~~~~~
 
-`Luke Macken <http://twitter.com/lmacken>`_
-`David Malcolm <http://dmalcolm.livejournal.com>`_
+Created by `Luke Macken <http://twitter.com/lmacken>`_ with the help of
+`David Malcolm <http://dmalcolm.livejournal.com>`_ and many other
+`contributors <https://github.com/lmacken/pyrasite/contributors>`_.
+
+License
+~~~~~~~
+
+.. image:: https://www.gnu.org/graphics/gplv3-127x51.png
+   :target: https://www.gnu.org/licenses/gpl.txt

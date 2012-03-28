@@ -17,7 +17,7 @@
 
 import os
 import sys
-import unittest
+import unittest2
 import subprocess
 
 import pyrasite
@@ -26,7 +26,7 @@ from pyrasite.tests.utils import generate_program, run_program, stop_program, \
                                  interpreters
 
 
-class TestCodeInjection(unittest.TestCase):
+class TestCodeInjection(unittest2.TestCase):
 
     def assert_output_contains(self, stdout, stderr, text):
         assert text in str(stdout), \
@@ -83,4 +83,4 @@ class TestCodeInjection(unittest.TestCase):
             os.unlink(program)
 
 if __name__ == '__main__':
-    unittest.main()
+    unittest2.main()

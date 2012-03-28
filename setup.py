@@ -1,6 +1,10 @@
 import sys
 from setuptools import setup, find_packages
 
+# These imports are not used, but make tests pass smoothly on python2.7
+import multiprocessing
+import logging
+
 version = '2.0beta9'
 
 f = open('README.rst')

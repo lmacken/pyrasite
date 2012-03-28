@@ -23,6 +23,12 @@ elif sys.version_info[0] == 2:
     if sys.version_info[1] < 7:
         requirements.append('argparse')
 
+tests_require = ['nose']
+if sys.version_info[0] == 3:
+    tests_require.append('unittest2py3k')
+else:
+    tests_require.append('unittest2')
+
 setup(name='pyrasite',
       version=version,
       description="Inject code into a running Python process",
@@ -36,7 +42,7 @@ setup(name='pyrasite',
       include_package_data=True,
       zip_safe=False,
       install_requires=requirements,
-      tests_require=['nose'],
+      tests_require=tests_require,
       test_suite='nose.collector',
       entry_points="""
           [console_scripts]

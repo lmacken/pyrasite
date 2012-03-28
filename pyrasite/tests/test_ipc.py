@@ -17,13 +17,13 @@
 
 import os
 import sys
-import unittest
+import unittest2
 
 import pyrasite
 from pyrasite.tests.utils import run_program, generate_program, stop_program
 
 
-class TestIPCContextManager(unittest.TestCase):
+class TestIPCContextManager(unittest2.TestCase):
 
     def setUp(self):
         self.prog = generate_program()
@@ -43,11 +43,11 @@ class TestIPCContextManager(unittest.TestCase):
         # Otherwise import a module which contains modern syntax.
         # It really contains our test case, but we have pushed it out into
         # another module so that python 2.4 never sees it.
-        import context_manager_case
-        context_manager_case.context_manager_business(self)
+        import pyrasite.tests.context_manager_case
+        pyrasite.tests.context_manager_case.context_manager_business(self)
 
 
-class TestIPC(unittest.TestCase):
+class TestIPC(unittest2.TestCase):
 
     def setUp(self):
         self.prog = generate_program()
@@ -94,4 +94,4 @@ class TestIPC(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    unittest.main()
+    unittest2.main()

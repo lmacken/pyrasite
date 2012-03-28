@@ -69,6 +69,13 @@ class PyrasiteIPC(object):
         self.hostname = None
         self.port = None
 
+    def __enter__(self):
+        self.connect()
+        return self
+
+    def __exit__(self, *args, **kwargs):
+        self.close()
+
     @property
     def title(self):
         if not getattr(self, '_title', None):

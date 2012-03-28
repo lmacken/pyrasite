@@ -17,6 +17,11 @@ BuildRequires:    python-nose
 
 Requires:         gdb >= 7.3
 
+%if 0%{?rhel} <= 6
+BuildRequires:    python-argparse
+Requires:         python-argparse
+%endif
+
 %description
 Pyrasite uses the GNU debugger to inject code into a running Python process.
 It is comprised of a command-line tool, and a Python API. This package

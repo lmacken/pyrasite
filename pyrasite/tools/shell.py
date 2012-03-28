@@ -29,14 +29,15 @@ def shell():
     ipc = pyrasite.PyrasiteIPC(int(sys.argv[1]))
     ipc.connect()
 
-    print("pyrasite shell %s" % pyrasite.__version__)
+    print("Pyrasite Shell %s" % pyrasite.__version__)
+    print("Connected to '%s'" % ipc.title)
     print(ipc.cmd('import sys; print("Python " + sys.version + ' +
-                  '" on " + sys.platform)'))
+                  '" on " + sys.platform)').strip())
+
     try:
         while True:
             print(ipc.cmd(raw_input('>>> ')))
     except:
-        pass
+        print('')
 
     ipc.close()
-    print()

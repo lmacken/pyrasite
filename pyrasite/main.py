@@ -40,7 +40,7 @@ def ptrace_check():
             p = subprocess.Popen([getsebool, 'deny_ptrace'],
                     stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             out, err = p.communicate()
-            if out.decode('utf-8') == u'deny_ptrace --> on\n':
+            if str(out) == 'deny_ptrace --> on\n':
                 print("WARNING: ptrace is disabled. Injection will not work.")
                 print("You can enable it by running the following:")
                 print("sudo setsebool -P deny_ptrace=off")

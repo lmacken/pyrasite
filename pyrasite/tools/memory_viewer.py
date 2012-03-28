@@ -30,8 +30,9 @@ import urwid
 import urwid.raw_display
 
 from meliae import loader
+from os.path import join, abspath, dirname
 
-from pyrasite.inspect import ObjectInspector
+import pyrasite
 
 
 class PyrasiteMemoryViewer(object):
@@ -47,7 +48,7 @@ class PyrasiteMemoryViewer(object):
         ]
 
     def __init__(self, pid, objects):
-        self.inspector = ObjectInspector(pid)
+        self.pid = pid
         self.objects = objects
         self.summary = objects.summarize()
 
@@ -67,7 +68,7 @@ class PyrasiteMemoryViewer(object):
 
     def display_object(self, w, state):
         if state:
-            value = self.inspector.inspect(w.obj.max_address)
+            value = pyrasite.inspect(self.pid, w.obj.max_address)
             self.object_output.set_text(value)
 
     def get_object_buttons(self, group=[]):
@@ -134,16 +135,19 @@ class PyrasiteMemoryViewer(object):
 
 
 def main():
-    if len(sys.argv) != 3:
-        print "[ pyrasite memory viewer ]\n"
-        print "Usage: %s <pid> <objects.json>" % sys.argv[0]
-        print "\n    pid - the running process id"
-        print "    objects.json - the output of the dump-memory payload"
-        print
+    if len(sys.argv) != 2:
+        print("[ pyrasite memory viewer ]\n")
+        print("Usage: %s <pid> <objects.json>" % sys.argv[0])
+        print("\n    pid - the running process id")
+        print("")
         sys.exit(1)
 
     pid = int(sys.argv[1])
-    filename = sys.argv[2]
+    payload = abspath(join(dirname(__file__), '..',
+            'payloads', 'dump_memory.py'))
+    pyrasite.inject(pid, payload)
+
+    filename = '/tmp/pyrasite-%d-objects.json' % pid
     objects = loader.load(filename)
     objects.compute_referrers()
 

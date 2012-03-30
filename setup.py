@@ -24,10 +24,9 @@ elif sys.version_info[0] == 2:
         requirements.append('argparse')
 
 tests_require = ['nose']
-if sys.version_info[0] == 3:
-    tests_require.append('unittest2py3k')
-else:
-    tests_require.append('unittest2')
+if sys.version_info[0] == 2:
+    if sys.version_info[1] < 7:
+        tests_require.append('unittest2')
 
 setup(name='pyrasite',
       version=version,

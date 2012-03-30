@@ -17,13 +17,12 @@
 
 import os
 import sys
-import unittest2
 
 import pyrasite
-from pyrasite.tests.utils import run_program, generate_program, stop_program
+from pyrasite.tests.utils import run_program, generate_program, stop_program, unittest
 
 
-class TestIPCContextManager(unittest2.TestCase):
+class TestIPCContextManager(unittest.TestCase):
 
     def setUp(self):
         self.prog = generate_program()
@@ -47,7 +46,7 @@ class TestIPCContextManager(unittest2.TestCase):
         pyrasite.tests.context_manager_case.context_manager_business(self)
 
 
-class TestIPC(unittest2.TestCase):
+class TestIPC(unittest.TestCase):
 
     def setUp(self):
         self.prog = generate_program()
@@ -94,4 +93,4 @@ class TestIPC(unittest2.TestCase):
 
 
 if __name__ == '__main__':
-    unittest2.main()
+    unittest.main()

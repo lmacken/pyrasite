@@ -56,7 +56,8 @@ def main():
     parser.add_argument('pid',
                         help="The ID of the process to inject code into")
     parser.add_argument('filename',
-                        help="The second argument must be a filename")
+                        help="The Python script to be executed inside the"
+                             " running process, also referred to as 'payload'")
     parser.add_argument('--gdb-prefix', dest='gdb_prefix',
                         help='GDB prefix (if specified during installation)',
                         default="")

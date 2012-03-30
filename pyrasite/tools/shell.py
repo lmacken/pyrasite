@@ -39,4 +39,4 @@ def shell():
         pass
 
     ipc.close()
-    print()
+    print('')

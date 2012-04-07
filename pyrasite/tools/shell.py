@@ -26,18 +26,46 @@ def shell():
         print("Usage: pyrasite-shell <PID>")
         sys.exit(1)
 
-    ipc = pyrasite.PyrasiteIPC(int(sys.argv[1]))
+    ipc = pyrasite.PyrasiteIPC(int(sys.argv[1]), 'ReversePythonShell')
     ipc.connect()
 
     print("Pyrasite Shell %s" % pyrasite.__version__)
     print("Connected to '%s'" % ipc.title)
-    print(ipc.cmd('import sys; print("Python " + sys.version + ' +
-                  '" on " + sys.platform)').strip())
+
+    prompt, payload = ipc.recv().split('\n', 1)
+    print(payload)
+
+    try:
+        import readline
+    except ImportError:
+        pass
+
+    # py3k compat
+    try:
+        input_ = raw_input
+    except NameError:
+        input_ = input
 
     try:
         while True:
-            print(ipc.cmd(raw_input('>>> ')))
+            try:
+                input_line = input_(prompt)
+            except EOFError:
+                input_line = 'exit()'
+                print('')
+            except KeyboardInterrupt:
+                input_line = 'None'
+                print('')
+
+            ipc.send(input_line)
+            payload = ipc.recv()
+            if payload is None:
+                break
+            prompt, payload = payload.split('\n', 1)
+            if payload != '':
+                print(payload)
     except:
         print('')
+        raise
 
     ipc.close()

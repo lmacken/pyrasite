@@ -61,13 +61,14 @@ class PyrasiteIPC(object):
     # shell payloads with netcat.
     reliable = True
 
-    def __init__(self, pid):
+    def __init__(self, pid, reverse='ReversePythonConnection'):
         super(PyrasiteIPC, self).__init__()
         self.pid = pid
         self.sock = None
         self.server_sock = None
         self.hostname = None
         self.port = None
+        self.reverse = reverse
 
     def __enter__(self):
         self.connect()
@@ -133,7 +134,7 @@ class PyrasiteIPC(object):
                 line = line.replace('reliable = True', 'reliable = False')
             tmp.write(line)
 
-        tmp.write('ReversePythonConnection().start()\n')
+        tmp.write('%s().start()\n' % self.reverse)
         tmp.close()
         payload.close()
 

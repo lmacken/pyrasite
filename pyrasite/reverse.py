@@ -118,7 +118,7 @@ class ReversePythonConnection(ReverseConnection):
 
 class DistantInteractiveConsole(InteractiveConsole):
     def __init__(self, ipc):
-        InteractiveConsole.__init__(self)
+        InteractiveConsole.__init__(self, globals())
 
         self.ipc = ipc
         self.set_buffer()

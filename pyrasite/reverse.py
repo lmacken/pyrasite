@@ -186,6 +186,6 @@ class ReversePythonShell(threading.Thread, pyrasite.PyrasiteIPC):
             pass
         except:
             traceback.print_exc(file=sys.__stderr__)
-        finally:
-            sys.stdout, sys.stderr = sys.__stdout__, sys.__stderr__
-            self.close()
+
+        sys.stdout, sys.stderr = sys.__stdout__, sys.__stderr__
+        self.close()

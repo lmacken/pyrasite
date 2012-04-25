@@ -69,3 +69,7 @@ def shell():
         raise
 
     ipc.close()
+
+
+if __name__ == '__main__':
+    shell()

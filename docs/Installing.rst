@@ -4,82 +4,34 @@ Installing
 Requirements
 ~~~~~~~~~~~~
 
-Core
-----
+* `gdb <https://www.gnu.org/s/gdb>`_ (version 7.3+)
 
- * `gdb <https://www.gnu.org/s/gdb>`_ (version 7.3+)
 
-GUI
----
+Python Compatiblity
+~~~~~~~~~~~~~~~~~~~
 
- - `Pyrasite <https://github.com/lmacken/pyrasite>`_
- - Python debuginfo (needed for live object inspection)
+Pyrasite works with Python 2.4 and newer. Injection works between versions
+as well, so you can run Pyrasite under Python 3 and inject into 2, and
+vice versa.
 
-   - Fedora: python-debuginfo, Ubuntu: python-dbg
+Installing
+~~~~~~~~~~
 
- - PyGObject3 Introspection bindings
-
-   - Fedora: pygobject3, Ubuntu: python-gobject-dev, Arch: python2-gobject
-
- - WebKitGTK3
-
-   - Fedora: webkitgtk3, Ubuntu: gir1.2-webkit-3.0, Arch: libwebkit3
-
- - `meliae <https://launchpad.net/meliae>`_
-   - easy_install/pip may not work for this install. If not, use the tarball from the distribution website. You may need to install `Cython <http://cython.org>`_ in order to get meliae to build.
-
-   - Fedora: python-meliae, Ubuntu: python-meliae, Arch: python2-meliae
-
- - `pycallgraph <http://pycallgraph.slowchop.com>`_
-
-   - Fedora: python-pycallgraph, Ubuntu: python-pycallgraph, Arch: python2-pycallgraph
-
- - `psutil <http://code.google.com/p/psutil>`_
-
-   - Fedora: python-psutil, Ubuntu: python-psutil, Arch: python2-psutil
-
-Download
-~~~~~~~~
-
-Download the latest stable release from PyPi: http://pypi.python.org/pypi/pyrasite
+You can download the latest tarballs, RPMs, and debs from `PyPi <http://pypi.python.org/pypi/pyrasite>`_. Installing the package specific to your distribution is recommended. However, you
+can also install it using ``pip`` if you wish
 
 ::
 
-    pip install pyrasite
+    pip install pyrasite pyrasite-gui
 
-Running from git
-~~~~~~~~~~~~~~~~
 
-::
-
-    git clone git://github.com/lmacken/pyrasite.git
-    cd pyrasite
-    python -m pyrasite.main
-
-.. note::
-
-   If you're on Python 2.4, you can run pyrasite by doing
-   ``PYTHONPATH=$(pwd) python pyrasite/main.py``
+.. seealso:: `pyrasite-gui <http://pyrasite.readthedocs.org/en/latest/GUI.html>`_ for instructions on installing the graphical interface
 
 Additional installation notes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Fedora
 ------
-
-pyrasite and pycallgraph are currently not available in Fedora. You can run
-pyrasite on Fedora by doing the following:
-
-.. code-block:: bash
-
-   sudo yum -y install python-meliae python-devel python-psutil pygobject3 graphviz python-virtualenv git-core gcc
-   sudo yum -y --enablerepo=\*-debuginfo install python-debuginfo
-   git clone -b develop git://github.com/lmacken/pyrasite.git
-   cd pyrasite
-   virtualenv [--system-site-packages if on F16+] env
-   source env/bin/activate
-   python setup.py develop
-   pyrasite-gui
 
 If you're using Fedora 17 or later, you'll need to disable an SELinux boolean to allow ptrace.
 
@@ -111,4 +63,5 @@ Since version 10.10, Ubuntu ships with a `controversial patch <https://lkml.org/
 
     echo 0 > /proc/sys/kernel/yama/ptrace_scope
 
-
+You can make this change permanent by setting ``ptrace_scope`` to ``0`` in
+``/etc/sysctl.d/10-ptrace.conf``.

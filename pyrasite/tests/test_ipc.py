@@ -16,10 +16,34 @@
 # Copyright (C) 2011, 2012 Red Hat, Inc.
 
 import os
-import unittest
+import sys
 
 import pyrasite
-from pyrasite.tests.utils import run_program, generate_program, stop_program
+from pyrasite.tests.utils import run_program, generate_program, stop_program, unittest
+
+
+class TestIPCContextManager(unittest.TestCase):
+
+    def setUp(self):
+        self.prog = generate_program()
+        self.p = run_program(self.prog)
+
+    def tearDown(self):
+        stop_program(self.p)
+
+    def test_context_manager(self):
+        # Check that we're on a version of python that
+        # supports context managers
+        info = sys.version_info
+        major, minor = info[0], info[1]
+        if major <= 2 and minor <= 5:
+            self.skipTest("Context Managers not supported on Python<=2.5")
+
+        # Otherwise import a module which contains modern syntax.
+        # It really contains our test case, but we have pushed it out into
+        # another module so that python 2.4 never sees it.
+        import pyrasite.tests.context_manager_case
+        pyrasite.tests.context_manager_case.context_manager_business(self)
 
 
 class TestIPC(unittest.TestCase):

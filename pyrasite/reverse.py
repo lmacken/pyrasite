@@ -23,6 +23,7 @@ import sys
 import socket
 import traceback
 import threading
+from code import InteractiveConsole
 
 if sys.version_info[0] == 3:
     from io import StringIO
@@ -113,3 +114,78 @@ class ReversePythonConnection(ReverseConnection):
         buffer.close()
         self.send(output)
         return True
+
+
+class DistantInteractiveConsole(InteractiveConsole):
+    def __init__(self, ipc):
+        InteractiveConsole.__init__(self, globals())
+
+        self.ipc = ipc
+        self.set_buffer()
+
+    def set_buffer(self):
+        self.out_buffer = StringIO()
+        sys.stdout = sys.stderr = self.out_buffer
+
+    def unset_buffer(self):
+        sys.stdout, sys.stderr = sys.__stdout__, sys.__stderr__
+        value = self.out_buffer.getvalue()
+        self.out_buffer.close()
+
+        return value
+
+    def raw_input(self, prompt=""):
+        output = self.unset_buffer()
+        # payload format: 'prompt' ? '\n' 'output'
+        self.ipc.send('\n'.join((prompt, output)))
+
+        cmd = self.ipc.recv()
+
+        self.set_buffer()
+
+        return cmd
+
+
+class ReversePythonShell(threading.Thread, pyrasite.PyrasiteIPC):
+    """A reverse Python shell that behaves like Python interactive interpreter.
+
+    """
+
+    host = 'localhost'
+    port = 9001
+    reliable = True
+
+    def __init__(self, host=None, port=None):
+        super(ReversePythonShell, self).__init__()
+
+    def run(self):
+        try:
+            for res in socket.getaddrinfo(self.host, self.port,
+                    socket.AF_UNSPEC, socket.SOCK_STREAM):
+                af, socktype, proto, canonname, sa = res
+                try:
+                    self.sock = socket.socket(af, socktype, proto)
+                    try:
+                        self.sock.connect(sa)
+                    except socket.error:
+                        self.sock.close()
+                        self.sock = None
+                        continue
+                except socket.error:
+                    self.sock = None
+                    continue
+                break
+
+            if not self.sock:
+                raise Exception('pyrasite cannot establish reverse ' +
+                        'connection to %s:%d' % (self.host, self.port))
+
+            DistantInteractiveConsole(self).interact()
+
+        except SystemExit:
+            pass
+        except:
+            traceback.print_exc(file=sys.__stderr__)
+
+        sys.stdout, sys.stderr = sys.__stdout__, sys.__stderr__
+        self.close()

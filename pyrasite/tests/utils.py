@@ -16,11 +16,17 @@
 # Copyright (C) 2011-2012 Red Hat, Inc., Luke Macken <lmacken@redhat.com>
 
 import os
+import sys
 import glob
 import time
 import textwrap
 import tempfile
 import subprocess
+import unittest
+
+if sys.version_info[0] == 2:
+    if sys.version_info[1] < 7:
+        import unittest2 as unittest
 
 
 def generate_program(threads=1):
@@ -30,21 +36,20 @@ def generate_program(threads=1):
         import os, time, threading
         running = True
         pidfile = '/tmp/pyrasite_%d' % os.getpid()
+        open(pidfile, 'w').close()
         def cpu_bound():
-            i = 2
-            y = 0
-            def fib(n):
-                return fib(n - 1) + fib(n - 2)
+            i = 0
             while running:
-                y += fib(i)
                 i += 1
-        while os.path.exists(pidfile):
-            time.sleep(0.1)
     """)
     # CPU-bound threads
     for t in range(threads):
         script += "threading.Thread(target=cpu_bound).start()\n"
-    script += "open(pidfile, 'w').close()\n"
+    script += textwrap.dedent("""
+        while os.path.exists(pidfile):
+            time.sleep(0.1)
+        running = False
+    """)
     tmp.write(script)
     tmp.close()
     return filename

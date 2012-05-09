@@ -20,6 +20,8 @@ Contents
    Installing
    CLI
    Shell
+   MemoryViewer
    GUI
    Payloads
    API
+   Development

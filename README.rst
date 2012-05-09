@@ -3,7 +3,7 @@ pyrasite
 
 .. split here
 
-Pyrasite lets you to inject arbitrary code into running Python processes.
+Tools for injecting arbitrary code into running Python processes.
 
 :homepage: http://pyrasite.com
 :documentation: http://pyrasite.rtfd.org
@@ -36,9 +36,12 @@ The graphical interface can be found here: https://github.com/lmacken/pyrasite-g
 Authors
 ~~~~~~~
 
-`Luke Macken <http://twitter.com/lmacken>`_
+Created by `Luke Macken <http://twitter.com/lmacken>`_ with the help of
+`David Malcolm <http://dmalcolm.livejournal.com>`_ and many other
+`contributors <https://github.com/lmacken/pyrasite/contributors>`_.
 
-.. image:: http://api.coderwall.com/lmacken/endorsecount.png
-   :target: http://coderwall.com/lmacken
+License
+~~~~~~~
 
-David Malcolm <dmalcolm@redhat.com>
+.. image:: https://www.gnu.org/graphics/gplv3-127x51.png
+   :target: https://www.gnu.org/licenses/gpl.txt

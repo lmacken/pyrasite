@@ -1,10 +1,32 @@
+import sys
 from setuptools import setup, find_packages
 
-version = '2.0beta9'
+try:
+    # These imports are not used, but make
+    # tests pass smoothly on python2.7
+    import multiprocessing
+    import logging
+except Exception:
+    pass
+
+version = '2.0'
 
 f = open('README.rst')
 long_description = f.read().split('split here')[1]
 f.close()
+
+requirements = []
+if sys.version_info[0] == 3:
+    if sys.version_info[1] < 2:
+        requirements.append('argparse')
+elif sys.version_info[0] == 2:
+    if sys.version_info[1] < 7:
+        requirements.append('argparse')
+
+tests_require = ['nose']
+if sys.version_info[0] == 2:
+    if sys.version_info[1] < 7:
+        tests_require.append('unittest2')
 
 setup(name='pyrasite',
       version=version,
@@ -18,8 +40,8 @@ setup(name='pyrasite',
       packages=find_packages(exclude=['ez_setup', 'examples', 'tests']),
       include_package_data=True,
       zip_safe=False,
-      install_requires=[],
-      tests_require=['nose'],
+      install_requires=requirements,
+      tests_require=tests_require,
       test_suite='nose.collector',
       entry_points="""
           [console_scripts]

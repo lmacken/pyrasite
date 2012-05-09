@@ -1,4 +1,4 @@
-__version__ = '2.0beta9'
+__version__ = '2.0'
 __all__ = ('inject', 'inspect', 'PyrasiteIPC',
            'ReverseConnection', 'ReversePythonConnection')
 __license__ = """\

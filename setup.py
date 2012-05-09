@@ -9,7 +9,7 @@ try:
 except Exception:
     pass
 
-version = '2.0beta9'
+version = '2.0'
 
 f = open('README.rst')
 long_description = f.read().split('split here')[1]

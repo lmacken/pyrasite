@@ -15,7 +15,7 @@ f = open('README.rst')
 long_description = f.read().split('split here')[1]
 f.close()
 
-requirements = []
+requirements = ['urwid']
 if sys.version_info[0] == 3:
     if sys.version_info[1] < 2:
         requirements.append('argparse')

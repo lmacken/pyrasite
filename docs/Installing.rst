@@ -47,7 +47,7 @@ If you don't want to override Apple's default gdb, install the latest version of
 ::
 
     $ ./configure --program-prefix=gnu
-    $ pyrasite <PID> payloads/reverse_python_shell.py --prefix="gnu"
+    $ pyrasite <PID> payloads/reverse_python_shell.py --gdb-prefix="gnu"
 
 Arch Linux
 ----------

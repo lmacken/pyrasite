@@ -16,6 +16,7 @@ BuildRequires:    python-sphinx
 
 Requires:         gdb
 Requires:         python-meliae
+Requires:         python-urwid
 
 %if 0%{?rhel} <= 6
 BuildRequires:    python-argparse
@@ -53,7 +54,9 @@ gzip -c docs/_build/man/pyrasite.1 > %{buildroot}/%{_mandir}/man1/pyrasite.1.gz
 
 %changelog
 * Tue Aug 21 2012 Luke Macken <lmacken@redhat.com> - 2.0-2
-- Require python-meliae (github#40)
+- Require python-urwid for the pyrasite-memory-viewer
+- Require python-meliae for the memory-viewer and dump_memory payload
+  (github#40)
 
 * Mon Mar 12 2012 Luke Macken <lmacken@redhat.com> 2.0-1
 - Initial package for Fedora

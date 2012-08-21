@@ -1,6 +1,6 @@
 Name:             pyrasite
 Version:          2.0
-Release:          1%{?dist}
+Release:          2%{?dist}
 Summary:          Code injection and monitoring of running Python processes
 
 Group:            Development/Languages
@@ -15,6 +15,7 @@ BuildRequires:    python-nose
 BuildRequires:    python-sphinx
 
 Requires:         gdb
+Requires:         python-meliae
 
 %if 0%{?rhel} <= 6
 BuildRequires:    python-argparse
@@ -51,5 +52,8 @@ gzip -c docs/_build/man/pyrasite.1 > %{buildroot}/%{_mandir}/man1/pyrasite.1.gz
 %{python_sitelib}/*
 
 %changelog
+* Tue Aug 21 2012 Luke Macken <lmacken@redhat.com> - 2.0-2
+- Require python-meliae (github#40)
+
 * Mon Mar 12 2012 Luke Macken <lmacken@redhat.com> 2.0-1
 - Initial package for Fedora

@@ -22,11 +22,17 @@ import pyrasite
 def shell():
     """Open a Python shell in a running process"""
 
+    usage = "Usage: pyrasite-shell <PID>"
     if not len(sys.argv) == 2:
-        print("Usage: pyrasite-shell <PID>")
+        print(usage)
+        sys.exit(1)
+    try:
+        pid = int(sys.argv[1])
+    except ValueError:
+        print(usage)
         sys.exit(1)
 
-    ipc = pyrasite.PyrasiteIPC(int(sys.argv[1]), 'ReversePythonShell')
+    ipc = pyrasite.PyrasiteIPC(pid, 'ReversePythonShell')
     ipc.connect()
 
     print("Pyrasite Shell %s" % pyrasite.__version__)

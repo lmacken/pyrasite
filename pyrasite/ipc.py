@@ -116,7 +116,7 @@ class PyrasiteIPC(object):
 
         if not self.server_sock:
             raise Exception('pyrasite was unable to setup a ' +
-                    'local server socket')
+                            'local server socket')
         else:
             self.hostname, self.port = self.server_sock.getsockname()[0:2]
 

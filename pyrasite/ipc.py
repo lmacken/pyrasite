@@ -20,6 +20,7 @@
 """
 
 import os
+import stat
 import socket
 import struct
 import tempfile
@@ -137,6 +138,8 @@ class PyrasiteIPC(object):
         tmp.write('%s().start()\n' % self.reverse)
         tmp.close()
         payload.close()
+
+        os.chmod(filename, stat.S_IREAD | stat.S_IRGRP | stat.S_IROTH)
 
         return filename
 

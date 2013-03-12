@@ -5,5 +5,11 @@
 # https://launchpad.net/meliae
 # http://jam-bazaar.blogspot.com/2009/11/memory-debugging-with-meliae.html
 
-import os, meliae.scanner
-meliae.scanner.dump_all_objects('/tmp/pyrasite-%d-objects.json' % os.getpid())
+import os, meliae.scanner, platform
+
+if platform.system() == 'Windows':
+    temp = os.getenv('TEMP', os.getenv('TMP', '/temp'))
+    path = os.path.join(temp, 'pyrasite-%d-objects.json' % os.getpid())
+else:
+    path = '/tmp/pyrasite-%d-objects.json' % os.getpid()
+meliae.scanner.dump_all_objects(path)

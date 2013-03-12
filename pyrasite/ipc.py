@@ -25,6 +25,7 @@ import socket
 import struct
 import tempfile
 import subprocess
+import platform
 
 from os.path import dirname, abspath, join
 
@@ -81,9 +82,18 @@ class PyrasiteIPC(object):
     @property
     def title(self):
         if not getattr(self, '_title', None):
-            p = subprocess.Popen('ps --no-heading -o cmd= -p %d' % self.pid,
-                                 stdout=subprocess.PIPE, shell=True)
-            self._title = p.communicate()[0].decode('utf-8')
+            if platform.system() == 'Windows':
+                p = subprocess.Popen('tasklist /v /fi "pid eq %d" /nh /fo csv' % self.pid,
+                                    stdout=subprocess.PIPE, shell=True)
+                tmp = p.communicate()[0].decode('utf-8').strip().split(',')
+                if tmp[-1] == '"N/A"':
+                    self._title = tmp[0][1:-1]
+                else:
+                    self._title = tmp[-1][1:-1]
+            else:
+                p = subprocess.Popen('ps --no-heading -o cmd= -p %d' % self.pid,
+                                    stdout=subprocess.PIPE, shell=True)
+                self._title = p.communicate()[0].decode('utf-8')
         return self._title.strip()
 
     def connect(self):
@@ -139,7 +149,8 @@ class PyrasiteIPC(object):
         tmp.close()
         payload.close()
 
-        os.chmod(filename, stat.S_IREAD | stat.S_IRGRP | stat.S_IROTH)
+        if platform.system() != 'Windows':
+            os.chmod(filename, stat.S_IREAD | stat.S_IRGRP | stat.S_IROTH)
 
         return filename
 

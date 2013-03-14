@@ -8,10 +8,17 @@ def compile(filename, outputfilename, arch='x86', vcver=None):
             vcver = float(os.getenv('MSVCVER'))
         else:
             vcver = msvc9compiler.get_build_version()
-    vcvarsall = msvc9compiler.find_vcvarsall(vcver)
+    vcvars = msvc9compiler.find_vcvarsall(vcver)
+    if not vcvars:  # My VS 2008 Standard Edition doesn't have vcvarsall.bat
+        vsbase = msvc9compiler.VS_BASE % vcver
+        productdir = msvc9compiler.Reg.get_value(r"%s\Setup\VC" % vsbase,
+                                                 "productdir")
+        bat = 'vcvars%d.bat' % (arch == 'x86' and 32 or 64)
+        vcvars = os.path.join(productdir, 'bin',  bat)
+
     path = os.path.splitext(outputfilename)
     objfilename = path[0] + '.obj'
-    p = subprocess.Popen('"%s" %s & cl %s /Fe%s /Fo%s' % (vcvarsall, arch, filename, outputfilename, objfilename),
+    p = subprocess.Popen('"%s" %s & cl %s /Fe%s /Fo%s' % (vcvars, arch, filename, outputfilename, objfilename),
                             stdout=subprocess.PIPE,
                             stderr=subprocess.PIPE)
     try:

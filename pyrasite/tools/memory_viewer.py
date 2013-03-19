@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU General Public License
 # along with pyrasite.  If not, see <http://www.gnu.org/licenses/>.
 #
-# Copyright (C) 2011, 2012 Red Hat, Inc.
+# Copyright (C) 2011-2013 Red Hat, Inc.
 # Authors: Luke Macken <lmacken@redhat.com>
 """
 An interface for visualizing the output of of the dump-memory payload.

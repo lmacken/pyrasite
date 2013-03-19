@@ -15,7 +15,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with pyrasite.  If not, see <http://www.gnu.org/licenses/>.\
 """
-__copyright__ = "Copyright (C) 2011, 2012 Red Hat, Inc."
+__copyright__ = "Copyright (C) 2011-2013 Red Hat, Inc."
 
 from pyrasite.injector import inject
 from pyrasite.inspector import inspect

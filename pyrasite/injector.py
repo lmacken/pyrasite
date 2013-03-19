@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU General Public License
 # along with pyrasite.  If not, see <http://www.gnu.org/licenses/>.
 #
-# Copyright (C) 2011, 2012 Red Hat, Inc., Luke Macken <lmacken@redhat.com>
+# Copyright (C) 2011-2013 Red Hat, Inc., Luke Macken <lmacken@redhat.com>
 
 import os
 import subprocess

@@ -11,4 +11,4 @@ install: python setup.py install
 
 script:
   - sudo apt-get install -qq gdb
-  - python setup.py test
+  - nosetests -v

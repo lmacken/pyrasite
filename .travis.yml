@@ -10,6 +10,5 @@ python:
 install: python setup.py install
 
 script:
-  - pip install --use-mirrors unittest2
-  - sudo -get install gdb
-  - unit2 discover
+  - sudo apt-get install -qq gdb
+  - python setup.py test

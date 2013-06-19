@@ -1,5 +1,8 @@
 [run]
 source = pyrasite
+omit =
+    pyrasite/payloads/*
+    pyrasite/tools/*
 
 [report]
 exclude_lines =

@@ -1,6 +1,8 @@
 pyrasite
 ========
 
+.. image:: https://api.travis-ci.org/lmacken/pyrasite.png?branch=develop
+   :target: http://travis-ci.org/lmacken/pyrasite
 .. image:: https://pypip.in/v/pyrasite/badge.png
    :target: https://crate.io/packages/pyrasite
 .. image:: https://pypip.in/d/pyrasite/badge.png

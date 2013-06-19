@@ -26,9 +26,6 @@ elif sys.version_info[0] == 2:
         requirements.append('argparse')
 
 tests_require = ['nose']
-if sys.version_info[0] == 2:
-    if sys.version_info[1] < 7:
-        tests_require.append('unittest2')
 
 class build_py(_build_py):
   def run(self):

@@ -18,6 +18,8 @@
 import os
 import sys
 
+from nose.plugins.skip import SkipTest
+
 import pyrasite
 from pyrasite.tests.utils import run_program, generate_program, stop_program
 
@@ -37,7 +39,7 @@ class TestIPCContextManager(object):
         info = sys.version_info
         major, minor = info[0], info[1]
         if major <= 2 and minor <= 5:
-            self.skipTest("Context Managers not supported on Python<=2.5")
+            raise SkipTest("Context Managers not supported on Python<=2.5")
 
         # Otherwise import a module which contains modern syntax.
         # It really contains our test case, but we have pushed it out into

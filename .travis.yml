@@ -13,7 +13,7 @@ install:
 
 script:
   - sudo apt-get install -qq gdb
-  - nosetests -q --with-coverage --cover-package=pyrasite
+  - nosetests -q --with-coverage --cover-erase --cover-package=pyrasite
 
 after_success:
   - coveralls

@@ -1,6 +1,11 @@
 pyrasite
 ========
 
+.. image:: https://pypip.in/v/pyrasite/badge.png
+   :target: https://crate.io/packages/pyrasite
+.. image:: https://pypip.in/d/pyrasite/badge.png
+   :target: https://crate.io/packages/pyrasite
+
 .. split here
 
 Tools for injecting arbitrary code into running Python processes.

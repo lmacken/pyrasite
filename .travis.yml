@@ -7,8 +7,13 @@ python:
   - 3.2
   - 3.3
 
-install: python setup.py install
+install:
+  - python setup.py install
+  - pip install coveralls --use-mirrors
 
 script:
   - sudo apt-get install -qq gdb
-  - nosetests -v
+  - nosetests -q --with-coverage --cover-package=pyrasite
+
+after_success:
+  - coveralls

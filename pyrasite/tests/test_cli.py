@@ -78,11 +78,7 @@ class TestCLI(object):
         sys.argv = ['pyrasite', str(os.getpid()), 'helloworld.py']
         stdout = sys.stdout
         sys.stdout = StringIO()
-        try:
-            main()
-        except SystemExit:
-            exit_code = sys.exc_info()[1].code
-            assert exit_code == 4, exit_code
+        main()
         value = sys.stdout.getvalue()
         sys.stdout = stdout
         assert "Hello World!" in value, repr(value)

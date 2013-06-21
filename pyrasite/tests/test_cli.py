@@ -32,7 +32,7 @@ class TestCLI(object):
         try:
             main()
         except SystemExit:
-            exit_code = sys.exc_value.code
+            exit_code = sys.exc_info()[1].code
             assert exit_code == 1, exit_code
 
     def test_list_payloads(self):
@@ -55,7 +55,7 @@ class TestCLI(object):
         try:
             main()
         except SystemExit:
-            exit_code = sys.exc_value.code
+            exit_code = sys.exc_info()[1].code
             assert exit_code == 2, exit_code
         value = sys.stdout.getvalue()
         sys.stdout = stdout
@@ -68,7 +68,7 @@ class TestCLI(object):
         try:
             main()
         except SystemExit:
-            exit_code = sys.exc_value.code
+            exit_code = sys.exc_info()[1].code
             assert exit_code == 3, exit_code
         value = sys.stdout.getvalue()
         sys.stdout = stdout
@@ -81,7 +81,7 @@ class TestCLI(object):
         try:
             main()
         except SystemExit:
-            exit_code = sys.exc_value.code
+            exit_code = sys.exc_info()[1].code
             assert exit_code == 4, exit_code
         value = sys.stdout.getvalue()
         sys.stdout = stdout

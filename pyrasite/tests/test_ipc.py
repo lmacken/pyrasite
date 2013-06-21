@@ -93,4 +93,5 @@ class TestIPC(object):
     def test_repr(self):
         assert repr(self.ipc)
 
-
+    def test_title(self):
+        assert self.ipc.title

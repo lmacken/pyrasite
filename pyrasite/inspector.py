@@ -13,9 +13,13 @@
 # You should have received a copy of the GNU General Public License
 # along with pyrasite.  If not, see <http://www.gnu.org/licenses/>.
 #
-# Copyright (C) 2011, 2012 Red Hat, Inc., Luke Macken <lmacken@redhat.com>
+# Copyright (C) 2011-2013 Red Hat, Inc., Luke Macken <lmacken@redhat.com>
 
+import sys
 import subprocess
+
+encoding = sys.getdefaultencoding()
+
 
 def inspect(pid, address):
     "Return the value of an object in a given process at the specified address"
@@ -24,6 +28,6 @@ def inspect(pid, address):
         '-eval-command="print (PyObject *)%s"' % address,
     ])
     p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
-    for line in p.communicate()[0].split('\n'):
+    for line in p.communicate()[0].decode(encoding).split('\n'):
         if line.startswith('$1 = '):
             return line[5:]

@@ -8,11 +8,11 @@ python:
   - 3.3
 
 install:
+  - sudo apt-get install -qq gdb python${TRAVIS_PYTHON_VERSION}-dbg
   - python setup.py install
   - if [[ $TRAVIS_PYTHON_VERSION != '2.5' ]]; then pip install coveralls --use-mirrors && export HAS_COVERALLS=1; fi
 
 script:
-  - sudo apt-get install -qq gdb
   - nosetests -q --with-coverage --cover-erase --cover-package=pyrasite
 
 after_success:

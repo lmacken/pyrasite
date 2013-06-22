@@ -17,3 +17,6 @@ script:
 
 after_success:
   - if [[ $HAS_COVERALLS ]]; then coveralls; fi
+
+notifications:
+  irc: "chat.freenode.net#pyrasite"

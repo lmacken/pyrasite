@@ -1,12 +1,22 @@
 language: python
 
 python:
+  - 2.5
   - 2.6
   - 2.7
+  - 3.2
+  - 3.3
 
-install: python setup.py install
+install:
+  - sudo apt-get install -qq gdb python${TRAVIS_PYTHON_VERSION}-dbg
+  - python setup.py install
+  - if [[ $TRAVIS_PYTHON_VERSION != '2.5' ]]; then pip install coveralls --use-mirrors && export HAS_COVERALLS=1; fi
 
 script:
-  - pip install --use-mirrors unittest2
-  - sudo apt-get install gdb
-  - sudo unit2 discover
+  - nosetests -q --with-coverage --cover-erase --cover-package=pyrasite
+
+after_success:
+  - if [[ $HAS_COVERALLS ]]; then coveralls; fi
+
+notifications:
+  irc: "chat.freenode.net#pyrasite"

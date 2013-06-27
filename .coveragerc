@@ -1,0 +1,11 @@
+[run]
+source = pyrasite
+omit =
+    pyrasite/payloads/*
+    pyrasite/tools/*
+
+[report]
+exclude_lines =
+    pragma: no cover
+    def __repr__
+    if __name__ == .__main__.:

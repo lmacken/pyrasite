@@ -24,6 +24,8 @@ the value of the object itself.
 
 __version__ = '1.0'
 
+import os
+import re
 import sys
 import urwid
 import urwid.raw_display
@@ -147,6 +149,15 @@ def main():
     pyrasite.inject(pid, payload)
 
     filename = '/tmp/pyrasite-%d-objects.json' % pid
+    
+    # Work around bug caused by meliae dumping unicode strings:
+    # https://bugs.launchpad.net/meliae/+bug/876810
+    with open(filename) as sample_file, open(filename + '.tmp', 'w') as output_file:
+        pattern = re.compile(r"(?<!\\)\\u([dD][0-9a-fA-F]{3,3})")
+        for line in sample_file:
+            output_file.write(pattern.sub("#S\g<1>", line))
+    os.rename(filename + '.tmp', filename)
+
     objects = loader.load(filename)
     objects.compute_referrers()
 

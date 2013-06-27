@@ -22,11 +22,6 @@ import time
 import textwrap
 import tempfile
 import subprocess
-import unittest
-
-if sys.version_info[0] == 2:
-    if sys.version_info[1] < 7:
-        import unittest2 as unittest
 
 
 def generate_program(threads=1):

@@ -18,11 +18,13 @@
 import os
 import sys
 
+from nose.plugins.skip import SkipTest
+
 import pyrasite
-from pyrasite.tests.utils import run_program, generate_program, stop_program, unittest
+from pyrasite.tests.utils import run_program, generate_program, stop_program
 
 
-class TestIPCContextManager(unittest.TestCase):
+class TestIPCContextManager(object):
 
     def setUp(self):
         self.prog = generate_program()
@@ -37,7 +39,7 @@ class TestIPCContextManager(unittest.TestCase):
         info = sys.version_info
         major, minor = info[0], info[1]
         if major <= 2 and minor <= 5:
-            self.skipTest("Context Managers not supported on Python<=2.5")
+            raise SkipTest("Context Managers not supported on Python<=2.5")
 
         # Otherwise import a module which contains modern syntax.
         # It really contains our test case, but we have pushed it out into
@@ -46,7 +48,7 @@ class TestIPCContextManager(unittest.TestCase):
         pyrasite.tests.context_manager_case.context_manager_business(self)
 
 
-class TestIPC(unittest.TestCase):
+class TestIPC(object):
 
     def setUp(self):
         self.prog = generate_program()
@@ -91,6 +93,5 @@ class TestIPC(unittest.TestCase):
     def test_repr(self):
         assert repr(self.ipc)
 
-
-if __name__ == '__main__':
-    unittest.main()
+    def test_title(self):
+        assert self.ipc.title

@@ -70,6 +70,9 @@ class PyrasiteMemoryViewer(object):
     def display_object(self, w, state):
         if state:
             value = pyrasite.inspect(self.pid, w.obj.max_address)
+            if not value:
+                value = 'Unable to inspect remote object. Make sure you have ' \
+                        'the python-debuginfo package installed.'
             self.object_output.set_text(value)
 
     def get_object_buttons(self, group=[]):

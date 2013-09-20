@@ -12,6 +12,8 @@ pyrasite
 
 .. split here
 
+.. image:: http://pyrasite.com/logo.png
+
 Tools for injecting arbitrary code into running Python processes.
 
 :homepage: http://pyrasite.com
@@ -48,9 +50,19 @@ Authors
 Created by `Luke Macken <http://twitter.com/lmacken>`_ with the help of
 `David Malcolm <http://dmalcolm.livejournal.com>`_ and many other
 `contributors <https://github.com/lmacken/pyrasite/contributors>`_.
+Logo by `Adam Saunders <https://fedorahosted.org/design-team/ticket/214>`_.
 
-License
-~~~~~~~
+Licenses
+~~~~~~~~
+
+Code
+^^^^
 
 .. image:: https://www.gnu.org/graphics/gplv3-127x51.png
    :target: https://www.gnu.org/licenses/gpl.txt
+
+Logo
+^^^^
+
+.. image:: https://creativecommons.org/images/deed/nolaw.png
+   :target: https://creativecommons.org/publicdomain/zero/1.0/

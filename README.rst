@@ -1,3 +1,5 @@
+.. image:: http://pyrasite.com/logo.png
+
 pyrasite
 ========
 
@@ -11,8 +13,6 @@ pyrasite
    :target: https://crate.io/packages/pyrasite
 
 .. split here
-
-.. image:: http://pyrasite.com/logo.png
 
 Tools for injecting arbitrary code into running Python processes.
 

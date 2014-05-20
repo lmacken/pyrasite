@@ -13,7 +13,7 @@ install:
   - if [[ $TRAVIS_PYTHON_VERSION != '2.5' ]]; then pip install coveralls --use-mirrors && export HAS_COVERALLS=1; fi
 
 script:
-  - nosetests -v --with-coverage --cover-erase --cover-package=pyrasite
+  - nosetests -v --with-coverage --cover-erase --cover-package=pyrasite --exclude=test_injecting_into_all_interpreters
 
 after_success:
   - if [[ $HAS_COVERALLS ]]; then coveralls; fi

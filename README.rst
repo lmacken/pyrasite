@@ -29,6 +29,9 @@ Requirements
 ~~~~~~~~~~~~
 
  * `gdb <https://www.gnu.org/s/gdb>`_ (version 7.3+ (or RHEL5+))
+ 
+On OS X you will need to have a codesigned gdb - see https://sourceware.org/gdb/wiki/BuildingOnDarwin
+if you get errors while running with --verbose which mention codesigning.
 
 Compatiblity
 ~~~~~~~~~~~~

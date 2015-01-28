@@ -48,7 +48,7 @@ class TestCodeInjection(object):
 
     def test_many_payloads_into_program_with_many_threads(self):
         program = generate_program(threads=25)
-        num_payloads = 25
+        num_payloads = 5
         try:
             for exe in interpreters():
                 p = run_program(program, exe=exe)

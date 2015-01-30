@@ -24,6 +24,7 @@ import stat
 import socket
 import struct
 import tempfile
+import traceback
 import subprocess
 import platform
 
@@ -205,10 +206,13 @@ class PyrasiteIPC(object):
         return data
 
     def close(self):
-        if self.sock:
-            self.sock.close()
-        if getattr(self, 'server_sock', None):
-            self.server_sock.close()
+        try:
+            if self.sock:
+                self.sock.close()
+            if getattr(self, 'server_sock', None):
+                self.server_sock.close()
+        except:
+            traceback.print_exc()
 
     def __repr__(self):
         return "<%s %s>" % (self.__class__.__name__, self.pid)

@@ -73,8 +73,8 @@ def shell():
     except:
         print('')
         raise
-
-    ipc.close()
+    finally:
+        ipc.close()
 
 
 if __name__ == '__main__':

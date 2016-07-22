@@ -92,6 +92,10 @@ def main():
                         help="Set where output is to be printed. 'procstreams'" 
                              " prints output in stdout/stderr of running process"
                              " and 'localterm' prints output in local terminal.")
+    parser.add_argument('--ipc-timeout', dest='ipc_timeout', default=5,
+                        action='store', type=int,
+                        help="The number of seconds to wait for the injected"
+                             " code to reply over IPC before giving up.")
 
     if len(sys.argv) == 1:
         parser.print_help()
@@ -129,7 +133,8 @@ def main():
     
     if args.output_type == 'localterm':
         # Create new IPC connection to the process.
-        ipc = pyrasite.PyrasiteIPC(pid, 'ReversePythonConnection')
+        ipc = pyrasite.PyrasiteIPC(pid, 'ReversePythonConnection',
+                                   timeout=ipc_timeout)
         ipc.connect()
         print("Pyrasite Shell %s" % pyrasite.__version__)
         print("Connected to '%s'" % ipc.title)

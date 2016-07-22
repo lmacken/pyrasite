@@ -15,6 +15,7 @@
 #
 # Copyright (C) 2011-2013 Red Hat, Inc., Luke Macken <lmacken@redhat.com>
 
+import os
 import sys
 import pyrasite
 
@@ -32,7 +33,8 @@ def shell():
         print(usage)
         sys.exit(1)
 
-    ipc = pyrasite.PyrasiteIPC(pid, 'ReversePythonShell')
+    ipc = pyrasite.PyrasiteIPC(pid, 'ReversePythonShell',
+                               timeout=os.getenv('PYRASITE_IPC_TIMEOUT') or 5)
     ipc.connect()
 
     print("Pyrasite Shell %s" % pyrasite.__version__)

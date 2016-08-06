@@ -182,8 +182,8 @@ int InjectPythonCode(HANDLE hProcess, const char *code, char *moduleName)
 
 int InjectPythonCodeToPID(DWORD pid, const char *code)
 {
-	char versions[][9] = { "Python34", "Python33", "Python32", "Python31", "Python30", "Python27", "Python26", "Python25", "Python24" };
-	unsigned int numVersions = 9;
+	char versions[][9] = { "Python36", "Python35", "Python34", "Python33", "Python32", "Python31", "Python30", "Python27", "Python26", "Python25", "Python24" };
+	unsigned int numVersions = 11;
 	unsigned int i;
 	int retCode = 0;
 	int ret;

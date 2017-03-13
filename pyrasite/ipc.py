@@ -64,7 +64,7 @@ class PyrasiteIPC(object):
     # shell payloads with netcat.
     reliable = True
 
-    def __init__(self, pid, reverse='ReversePythonConnection'):
+    def __init__(self, pid, reverse='ReversePythonConnection', timeout=5):
         super(PyrasiteIPC, self).__init__()
         self.pid = pid
         self.sock = None
@@ -72,6 +72,7 @@ class PyrasiteIPC(object):
         self.hostname = None
         self.port = None
         self.reverse = reverse
+        self.timeout = float(timeout)
 
     def __enter__(self):
         self.connect()
@@ -165,7 +166,7 @@ class PyrasiteIPC(object):
         """Wait for the injected payload to connect back to us"""
         (clientsocket, address) = self.server_sock.accept()
         self.sock = clientsocket
-        self.sock.settimeout(5)
+        self.sock.settimeout(self.timeout)
         self.address = address
 
     def cmd(self, cmd):

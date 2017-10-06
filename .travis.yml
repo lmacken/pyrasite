@@ -6,6 +6,8 @@ python:
   - 2.7
   - 3.3
   - 3.4
+  - 3.5
+  - 3.6
 
 before_install:
   - echo 0 | sudo tee /proc/sys/kernel/yama/ptrace_scope

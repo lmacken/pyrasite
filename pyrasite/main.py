@@ -134,7 +134,7 @@ def main():
     if args.output_type == 'localterm':
         # Create new IPC connection to the process.
         ipc = pyrasite.PyrasiteIPC(pid, 'ReversePythonConnection',
-                                   timeout=ipc_timeout)
+                                   timeout=args.ipc_timeout)
         ipc.connect()
         print("Pyrasite Shell %s" % pyrasite.__version__)
         print("Connected to '%s'" % ipc.title)

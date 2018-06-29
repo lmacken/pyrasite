@@ -1,16 +1,16 @@
 language: python
 
 python:
-  - 2.6
   - 2.7
-  - 3.2
-  - 3.3
   - 3.4
+  - 3.5
+  - 3.6
+  - 3.7
 
 install:
   - sudo apt-get install -qq gdb python-all-dbg
   - python setup.py install
-  - if [[ $TRAVIS_PYTHON_VERSION != '2.5' ]]; then pip install coveralls --use-mirrors && export HAS_COVERALLS=1; fi
+  - pip install coveralls && export HAS_COVERALLS=1
 
 script:
   - nosetests -v --with-coverage --cover-erase --cover-package=pyrasite --exclude=test_injecting_into_all_interpreters

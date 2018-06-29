@@ -147,8 +147,8 @@ class PyrasiteIPC(object):
         for line in payload.readlines():
             if line.startswith('#'):
                 continue
-            line = line.replace('port = 9001', 'port = {}'.format(self.port))
-            line = line.replace('host = localhost', 'host = {}'.format(self.client_host))
+            line = line.replace('port = 9001', 'port = {0}'.format(self.port))
+            line = line.replace('host = localhost', 'host = {0}'.format(self.client_host))
             if not self.reliable:
                 line = line.replace('reliable = True', 'reliable = False')
             tmp.write(line)

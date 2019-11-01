@@ -1,8 +1,0 @@
-include LICENSE
-include README.rst
-
-graft pyrasite
-graft tests
-graft docs
-
-global-exclude *.pyc *.pyo *.swp *.swo

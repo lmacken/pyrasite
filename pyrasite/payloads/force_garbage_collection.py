@@ -1,2 +1,0 @@
-import gc
-gc.collect()

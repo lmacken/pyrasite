@@ -96,7 +96,7 @@ class PyrasiteMemoryViewer(object):
         bt = urwid.Padding(self.bigtext, 'left', None)
         bt = urwid.AttrWrap(bt, 'bigtext')
 
-        # Create the object outpu
+        # Create the object output
         self.object_output = urwid.Text("", wrap='any')
         ca = urwid.AttrWrap(self.object_output, 'object_output')
 

@@ -41,7 +41,31 @@ def inject(pid, filename, verbose=False, gdb_prefix=''):
         print(out)
         print(err)
 
-if platform.system() == 'Windows':
+_platform = platform.system()
+if _platform == 'Darwin':
+    def inject_mac(pid, filename, verbose=False, gdb_prefix=''):
+        filename = os.path.abspath(filename)
+        gdb_cmds = [
+            '(int) PyGILState_Ensure()',
+            '(int) PyRun_SimpleString("'
+                'import sys; sys.path.insert(0, \\"%s\\"); '
+                'sys.path.insert(0, \\"%s\\"); '
+                'exec(open(\\"%s\\").read())")' %
+                    (os.path.dirname(filename),
+                    os.path.abspath(os.path.join(os.path.dirname(__file__), '..')),
+                    filename),
+            '(int) PyGILState_Release($1)',
+            ]
+        p = subprocess.Popen('%slldb -p %d -b %s -k quit' % (gdb_prefix, pid,
+            ' '.join(["-k 'call %s'" % cmd for cmd in gdb_cmds])),
+            shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        out, err = p.communicate()
+        if verbose:
+            print(out)
+            print(err)
+    inject = inject_mac
+
+elif _platform == 'Windows':
     def inject_win(pid, filename, verbose=False, gdb_prefix=''):
         if gdb_prefix == '':
             gdb_prefix = os.path.join(os.path.dirname(__file__), 'win') + os.sep
@@ -55,5 +79,4 @@ if platform.system() == 'Windows':
         if verbose:
             print(out)
             print(err)
-
     inject = inject_win

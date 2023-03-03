@@ -33,8 +33,8 @@ Requirements
 On OS X you will need to have a codesigned gdb - see https://sourceware.org/gdb/wiki/BuildingOnDarwin
 if you get errors while running with --verbose which mention codesigning.
 
-Compatiblity
-~~~~~~~~~~~~
+Compatibility
+~~~~~~~~~~~~~
 
 Pyrasite works with Python 2.4 and newer. Injection works between versions
 as well, so you can run Pyrasite under Python 3 and inject into 2, and

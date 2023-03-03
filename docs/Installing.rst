@@ -7,8 +7,8 @@ Requirements
 * `gdb <https://www.gnu.org/s/gdb>`_ (version 7.3+)
 
 
-Python Compatiblity
-~~~~~~~~~~~~~~~~~~~
+Python Compatibility
+~~~~~~~~~~~~~~~~~~~~
 
 Pyrasite works with Python 2.4 and newer. Injection works between versions
 as well, so you can run Pyrasite under Python 3 and inject into 2, and

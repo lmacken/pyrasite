@@ -1,16 +1,21 @@
 language: python
+sudo: true
 
 python:
   - 2.6
   - 2.7
-  - 3.2
   - 3.3
   - 3.4
+  - 3.5
+  - 3.6
+
+before_install:
+  - echo 0 | sudo tee /proc/sys/kernel/yama/ptrace_scope
 
 install:
   - sudo apt-get install -qq gdb python-all-dbg
   - python setup.py install
-  - if [[ $TRAVIS_PYTHON_VERSION != '2.5' ]]; then pip install coveralls --use-mirrors && export HAS_COVERALLS=1; fi
+  - if [[ $TRAVIS_PYTHON_VERSION != '2.5' ]]; then pip install coveralls && export HAS_COVERALLS=1; fi
 
 script:
   - nosetests -v --with-coverage --cover-erase --cover-package=pyrasite --exclude=test_injecting_into_all_interpreters

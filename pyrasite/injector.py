@@ -34,7 +34,7 @@ def inject(pid, filename, verbose=False, gdb_prefix=''):
         'PyGILState_Release($1)',
         ]
     p = subprocess.Popen('%sgdb -p %d -batch %s' % (gdb_prefix, pid,
-        ' '.join(["-eval-command='call %s'" % cmd for cmd in gdb_cmds])),
+        ' '.join(["-eval-command='call (void*) %s'" % cmd for cmd in gdb_cmds])),
         shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     out, err = p.communicate()
     if verbose:

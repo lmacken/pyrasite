@@ -19,7 +19,8 @@ import os
 import subprocess
 import platform
 
-def inject(pid, filename, verbose=False, gdb_prefix=''):
+
+def inject_gdb(pid, filename, verbose=False, gdb_prefix=''):
     """Executes a file in a running Python process."""
     filename = os.path.abspath(filename)
     gdb_cmds = [
@@ -40,6 +41,52 @@ def inject(pid, filename, verbose=False, gdb_prefix=''):
     if verbose:
         print(out)
         print(err)
+    return p.returncode
+
+
+# This command is written like this because of lldb's habbit to drop
+# into REPL on error (even in batch mode...) and not wanting additional
+# dependency like pexpect for managing interactive I/O in python.
+# (Requires lldb compiled with python support)
+def inject_lldb(pid, filename, verbose=False, gdb_prefix=''):
+    """Executes a file in a running Python process via lldb."""
+    filename = os.path.abspath(filename)
+    lldb_cmds = [
+        'process attach --pid %s' % pid,
+        'expr (int (*)()) PyGILState_Ensure',
+        'expr (int (*)(char *)) PyRun_SimpleString',
+        'expr (void (*)(int)) PyGILState_Release',
+        'expr $0()',
+        'expr $1(\\"'
+            'import sys; sys.path.insert(0, \'%s\'); '
+            'sys.path.insert(0, \'%s\'); '
+            'exec(open(\'%s\').read())\\")' %
+                (os.path.dirname(filename),
+                os.path.abspath(os.path.join(os.path.dirname(__file__), '..')),
+                filename),
+        'expr $2($3)',
+        ]
+    s = ['%slldb' % gdb_prefix]
+    for tmp in lldb_cmds:
+        s.append('-o')
+        s.append('script lldb.debugger.HandleCommand("%s")' % tmp)
+    s.extend(['-o', 'quit'])
+    p = subprocess.Popen(s,
+        shell=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    out, err = p.communicate()
+    if verbose:
+        print(out)
+        print(err)
+    return p.returncode
+
+
+def inject(pid, filename, verbose=False, gdb_prefix=''):
+    """Executes a file in a running Python process."""
+    ret = inject_gdb(pid, filename, verbose, gdb_prefix)
+    if ret == 127:
+        ret = inject_lldb(pid, filename, verbose, gdb_prefix)
+    return ret
+
 
 if platform.system() == 'Windows':
     def inject_win(pid, filename, verbose=False, gdb_prefix=''):

@@ -1,4 +1,4 @@
-.. image:: http://pyrasite.com/logo.png
+.. image:: docs/logo.png
 
 pyrasite
 ========
@@ -7,19 +7,17 @@ pyrasite
    :target: http://travis-ci.org/lmacken/pyrasite
 .. image:: https://coveralls.io/repos/lmacken/pyrasite/badge.png?branch=develop
    :target: https://coveralls.io/r/lmacken/pyrasite?branch=develop
-.. image:: https://pypip.in/v/pyrasite/badge.png
-   :target: https://crate.io/packages/pyrasite
-.. image:: https://pypip.in/d/pyrasite/badge.png
-   :target: https://crate.io/packages/pyrasite
+.. image:: https://img.shields.io/pypi/v/pyrasite?style=flat
+   :target: https://pypi.python.org/pypi/pyrasite
 
 .. split here
 
 Tools for injecting arbitrary code into running Python processes.
 
-:homepage: http://pyrasite.com
-:documentation: http://pyrasite.rtfd.org
-:download: http://pypi.python.org/pypi/pyrasite
-:source: http://github.com/lmacken/pyrasite
+:homepage: https://github.com/lmacken/pyrasite
+:documentation: https://pyrasite.rtfd.org
+:download: https://pypi.python.org/pypi/pyrasite
+:source: https://github.com/lmacken/pyrasite
 :screenshots: http://readthedocs.org/docs/pyrasite/en/latest/GUI.html
 :mailing list: https://fedorahosted.org/mailman/listinfo/pyrasite
 :jenkins: http://ci.csh.rit.edu/view/Pyrasite
@@ -50,8 +48,8 @@ The graphical interface can be found here: https://github.com/lmacken/pyrasite-g
 Authors
 ~~~~~~~
 
-Created by `Luke Macken <http://twitter.com/lmacken>`_ with the help of
-`David Malcolm <http://dmalcolm.livejournal.com>`_ and many other
+Created by `Luke Macken <https://twitter.com/lmacken>`_ with the help of
+`David Malcolm <https://dmalcolm.livejournal.com>`_ and many other
 `contributors <https://github.com/lmacken/pyrasite/contributors>`_.
 Logo by `Adam Saunders <https://fedorahosted.org/design-team/ticket/214>`_.
 

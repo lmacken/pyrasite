@@ -64,15 +64,18 @@ class PyrasiteIPC(object):
     # shell payloads with netcat.
     reliable = True
 
-    def __init__(self, pid, reverse='ReversePythonConnection', timeout=5):
+    def __init__(self, pid, reverse='ReversePythonConnection', timeout=5, port=None, server_host='localhost', client_host='localhost', tmpdir=None):
         super(PyrasiteIPC, self).__init__()
         self.pid = pid
         self.sock = None
         self.server_sock = None
         self.hostname = None
-        self.port = None
+        self.port = port
         self.reverse = reverse
         self.timeout = float(timeout)
+        self.server_host = server_host
+        self.client_host = client_host
+        self.tmpdir = tmpdir
 
     def __enter__(self):
         self.connect()
@@ -109,7 +112,7 @@ class PyrasiteIPC(object):
 
     def listen(self):
         """Listen on a random port"""
-        for res in socket.getaddrinfo('localhost', None, socket.AF_UNSPEC,
+        for res in socket.getaddrinfo(self.server_host, self.port, socket.AF_UNSPEC,
                                       socket.SOCK_STREAM, 0, 0):
             af, socktype, proto, canonname, sa = res
             try:
@@ -134,7 +137,9 @@ class PyrasiteIPC(object):
 
     def create_payload(self):
         """Write out a reverse python connection payload with a custom port"""
-        (fd, filename) = tempfile.mkstemp()
+        (fd, filename) = tempfile.mkstemp(dir=self.tmpdir)
+        if platform.system() != 'Windows':
+            os.fchmod(fd, stat.S_IREAD | stat.S_IRGRP | stat.S_IROTH)
         tmp = os.fdopen(fd, 'w')
         path = dirname(abspath(pyrasite.__file__))
         payload = open(join(path, 'reverse.py'))
@@ -142,7 +147,8 @@ class PyrasiteIPC(object):
         for line in payload.readlines():
             if line.startswith('#'):
                 continue
-            line = line.replace('port = 9001', 'port = %d' % self.port)
+            line = line.replace('port = 9001', 'port = {0}'.format(self.port))
+            line = line.replace('host = localhost', 'host = {0}'.format(self.client_host))
             if not self.reliable:
                 line = line.replace('reliable = True', 'reliable = False')
             tmp.write(line)
@@ -150,9 +156,6 @@ class PyrasiteIPC(object):
         tmp.write('%s().start()\n' % self.reverse)
         tmp.close()
         payload.close()
-
-        if platform.system() != 'Windows':
-            os.chmod(filename, stat.S_IREAD | stat.S_IRGRP | stat.S_IROTH)
 
         return filename
 

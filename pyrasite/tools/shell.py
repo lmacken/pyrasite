@@ -15,26 +15,32 @@
 #
 # Copyright (C) 2011-2013 Red Hat, Inc., Luke Macken <lmacken@redhat.com>
 
+import argparse
 import os
-import sys
 import pyrasite
 
 
 def shell():
-    """Open a Python shell in a running process"""
+    parser = argparse.ArgumentParser(description='Open a Python shell in a running process')
+    parser.add_argument('pid', type=int, help='PID of the running process to attach to.')
+    parser.add_argument('--timeout', type=int, default=5, help='IPC Timeout, applies for each command.')
+    parser.add_argument('--server-host', default='localhost', help='The hostname to use for the listening (server) side of the IPC communication. Sometimes, (docker), localhost does not work.')
+    parser.add_argument('--client-host', default='localhost', help='The hostname to use for the connecting (client) side of the IPC communication. Sometimes, (docker), localhost does not work.')
+    parser.add_argument('--port', type=int, default=None, help='Optionally specify a port that will be listened on for the remote process to attach back.')
+    parser.add_argument('--tmpdir', default=None, help='Use the following tmp directory for transferring the payload')
 
-    usage = "Usage: pyrasite-shell <PID>"
-    if not len(sys.argv) == 2:
-        print(usage)
-        sys.exit(1)
-    try:
-        pid = int(sys.argv[1])
-    except ValueError:
-        print(usage)
-        sys.exit(1)
+    args = parser.parse_args()
 
-    ipc = pyrasite.PyrasiteIPC(pid, 'ReversePythonShell',
-                               timeout=os.getenv('PYRASITE_IPC_TIMEOUT') or 5)
+    ipc = pyrasite.PyrasiteIPC(
+        args.pid,
+        'ReversePythonShell',
+        timeout=args.timeout,
+        server_host=args.server_host,
+        client_host=args.client_host,
+        port=args.port,
+        tmpdir=args.tmpdir,
+    )
+
     ipc.connect()
 
     print("Pyrasite Shell %s" % pyrasite.__version__)

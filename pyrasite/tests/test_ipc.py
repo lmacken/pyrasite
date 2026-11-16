@@ -16,82 +16,100 @@
 # Copyright (C) 2011-2013 Red Hat, Inc.
 
 import os
-import sys
 
-from nose.plugins.skip import SkipTest
+import pytest
 
 import pyrasite
-from pyrasite.tests.utils import run_program, generate_program, stop_program
+from pyrasite.tests.utils import generate_program, run_program, stop_program
 
 
-class TestIPCContextManager(object):
-
-    def setUp(self):
-        self.prog = generate_program()
-        self.p = run_program(self.prog)
-
-    def tearDown(self):
-        stop_program(self.p)
-
-    def test_context_manager(self):
-        # Check that we're on a version of python that
-        # supports context managers
-        info = sys.version_info
-        major, minor = info[0], info[1]
-        if major <= 2 and minor <= 5:
-            raise SkipTest("Context Managers not supported on Python<=2.5")
-
-        # Otherwise import a module which contains modern syntax.
-        # It really contains our test case, but we have pushed it out into
-        # another module so that python 2.4 never sees it.
-        import pyrasite.tests.context_manager_case
-        pyrasite.tests.context_manager_case.context_manager_business(self)
+@pytest.fixture
+def target(gdb_available):
+    program = generate_program()
+    p = run_program(program)
+    try:
+        yield p
+    finally:
+        stop_program(p)
+        os.unlink(program)
 
 
-class TestIPC(object):
+@pytest.fixture
+def ipc(target):
+    ipc = pyrasite.PyrasiteIPC(target.pid)
+    try:
+        yield ipc
+    finally:
+        ipc.close()
 
-    def setUp(self):
-        self.prog = generate_program()
-        self.p = run_program(self.prog)
-        self.ipc = pyrasite.PyrasiteIPC(self.p.pid)
 
-    def tearDown(self):
-        stop_program(self.p)
-        self.ipc.close()
+def test_listen(ipc):
+    ipc.listen()
+    assert ipc.server_sock
+    assert ipc.hostname
+    assert ipc.port
+    assert ipc.server_sock.getsockname()[1] == ipc.port
 
-    def test_listen(self):
-        self.ipc.listen()
-        assert self.ipc.server_sock
-        assert self.ipc.hostname
-        assert self.ipc.port
-        assert self.ipc.server_sock.getsockname()[1] == self.ipc.port
 
-    def test_create_payload(self):
-        self.ipc.listen()
-        payload = self.ipc.create_payload()
+def test_create_payload(ipc):
+    ipc.listen()
+    payload = ipc.create_payload()
+    try:
         assert os.path.exists(payload)
-        code = open(payload)
-        compile(code.read(), payload, 'exec')
-        code.close()
+        with open(payload) as code:
+            source = code.read()
+        compile(source, payload, 'exec')
+        assert 'port = %d' % ipc.port in source
+    finally:
         os.unlink(payload)
 
-    def test_connect(self):
-        self.ipc.connect()
-        assert self.ipc.sock
-        assert self.ipc.address
 
-    def test_cmd(self):
-        self.ipc.connect()
-        assert self.ipc.cmd('print("mu")') == 'mu\n'
+def test_connect(ipc):
+    ipc.connect()
+    assert ipc.sock
+    assert ipc.address
 
-    def test_unreliable(self):
-        self.ipc.reliable = False
-        self.ipc.connect()
-        out = self.ipc.cmd('print("mu")')
-        assert out == 'mu\n', out
 
-    def test_repr(self):
-        assert repr(self.ipc)
+def test_cmd(ipc):
+    ipc.connect()
+    assert ipc.cmd('print("mu")') == 'mu\n'
 
-    def test_title(self):
-        assert self.ipc.title
+
+def test_cmd_keeps_namespace(ipc):
+    ipc.connect()
+    ipc.cmd('pyrasite_test_value = 41')
+    assert ipc.cmd('print(pyrasite_test_value + 1)') == '42\n'
+
+
+def test_unreliable(ipc):
+    ipc.reliable = False
+    ipc.connect()
+    out = ipc.cmd('print("mu")')
+    assert out == 'mu\n', out
+
+
+def test_repr(ipc):
+    assert repr(ipc)
+
+
+def test_title(ipc):
+    assert ipc.title
+
+
+def test_context_manager(target):
+    with pyrasite.PyrasiteIPC(target.pid) as ipc:
+        assert ipc.cmd('print("mu")') == 'mu\n'
+
+    # The context manager must close the connection.
+    with pytest.raises(OSError):
+        ipc.cmd('print("mu")')
+
+
+def test_wait_timeout(target):
+    ipc = pyrasite.PyrasiteIPC(target.pid, timeout=0.1)
+    ipc.listen()
+    try:
+        with pytest.raises(RuntimeError):
+            ipc.wait()
+    finally:
+        ipc.close()

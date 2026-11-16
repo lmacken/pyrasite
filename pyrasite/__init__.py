@@ -1,5 +1,5 @@
-__version__ = '2.0'
-__all__ = ('inject', 'inspect', 'PyrasiteIPC',
+__version__ = '2.1.0'
+__all__ = ('inject', 'inspect', 'PyrasiteIPC', 'InjectionError',
            'ReverseConnection', 'ReversePythonConnection')
 __license__ = """\
 pyrasite is free software: you can redistribute it and/or modify
@@ -17,7 +17,8 @@ along with pyrasite.  If not, see <http://www.gnu.org/licenses/>.\
 """
 __copyright__ = "Copyright (C) 2011-2013 Red Hat, Inc."
 
-from pyrasite.injector import inject
+from pyrasite.injector import inject, InjectionError
 from pyrasite.inspector import inspect
 from pyrasite.ipc import PyrasiteIPC
 from pyrasite.reverse import ReverseConnection, ReversePythonConnection
+from pyrasite import utils  # noqa: F401 - used by the reverse_shell payload

@@ -90,9 +90,8 @@ This lets you easily introspect or alter any objects in your running process.
 ::
 
     $ nc -l 9001
-    Python 2.7.1 (r271:86832, Apr 12 2011, 16:15:16)
-    [GCC 4.6.0 20110331 (Red Hat 4.6.0-2)]
-    >>> print x
+    Python 3.12.3 (main, ...) [GCC ...]
+    >>> print(x)
     foo
     >>> globals()['x'] = 'bar'
 

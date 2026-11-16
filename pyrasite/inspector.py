@@ -15,19 +15,21 @@
 #
 # Copyright (C) 2011-2013 Red Hat, Inc., Luke Macken <lmacken@redhat.com>
 
-import sys
 import subprocess
 
-encoding = sys.getdefaultencoding()
 
-
-def inspect(pid, address):
-    "Return the value of an object in a given process at the specified address"
-    cmd = ' '.join([
-        'gdb --quiet -p %s -batch' % pid,
-        '-eval-command="print (PyObject *)%s"' % address,
-    ])
-    p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
-    for line in p.communicate()[0].decode(encoding).split('\n'):
+def inspect(pid, address, gdb_prefix=''):
+    """Return the value of an object in a given process at the specified address"""
+    argv = [
+        (gdb_prefix or '') + 'gdb',
+        '--quiet',
+        '-p', str(pid),
+        '-batch',
+        '-eval-command=print (PyObject *)%s' % address,
+    ]
+    p = subprocess.run(argv, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                       universal_newlines=True)
+    for line in p.stdout.splitlines():
         if line.startswith('$1 = '):
             return line[5:]
+    return None

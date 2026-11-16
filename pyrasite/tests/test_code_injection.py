@@ -16,68 +16,140 @@
 # Copyright (C) 2011-2013 Red Hat, Inc., Luke Macken <lmacken@redhat.com>
 
 import os
-import sys
 import subprocess
+import sys
+import tempfile
+
+import pytest
 
 import pyrasite
+from pyrasite.tests.utils import (generate_program, interpreters, run_program,
+                                  stop_program)
 
-from pyrasite.tests.utils import generate_program, run_program, stop_program, \
-                                 interpreters
+PAYLOAD_DIR = os.path.join(os.path.dirname(pyrasite.__file__), 'payloads')
+HELLOWORLD = os.path.join(PAYLOAD_DIR, 'helloworld.py')
 
 
-class TestCodeInjection(object):
+def _interpreters_or_skip():
+    found = interpreters()
+    if not found:
+        return [pytest.param(sys.executable,
+                             marks=pytest.mark.skip(
+                                 reason="no usable CPython interpreters found"))]
+    return found
 
-    def assert_output_contains(self, stdout, stderr, text):
-        assert text in str(stdout), \
-                "Code injection failed: %s\n%s" % (stdout, stderr)
 
-    def test_injecting_into_all_interpreters(self):
-        program = generate_program()
+@pytest.mark.parametrize('exe', _interpreters_or_skip())
+def test_injecting_into_interpreter(exe, gdb_available):
+    program = generate_program()
+    try:
+        p = run_program(program, exe=exe)
         try:
-            for exe in interpreters():
-                print("sys.executable = %s" % sys.executable)
-                print("injecting into %s" % exe)
-                p = run_program(program, exe=exe)
-                pyrasite.inject(p.pid,
-                        'pyrasite/payloads/helloworld.py', verbose=True)
-                stop_program(p)
-                stdout, stderr = p.communicate()
-                self.assert_output_contains(stdout, stderr, 'Hello World!')
+            pyrasite.inject(p.pid, HELLOWORLD)
         finally:
-            os.unlink(program)
+            stdout, stderr = stop_program(p)
+        assert 'Hello World!' in stdout, \
+            "Code injection into %s failed:\n%s\n%s" % (exe, stdout, stderr)
+    finally:
+        os.unlink(program)
 
-    def test_many_payloads_into_program_with_many_threads(self):
-        program = generate_program(threads=25)
-        num_payloads = 5
+
+@pytest.mark.parametrize('exe', _interpreters_or_skip())
+def test_many_payloads_into_program_with_many_threads(exe, gdb_available):
+    program = generate_program(threads=25)
+    num_payloads = 5
+    try:
+        p = run_program(program, exe=exe)
         try:
-            for exe in interpreters():
-                p = run_program(program, exe=exe)
-                for i in range(num_payloads):
-                    pyrasite.inject(p.pid,
-                            'pyrasite/payloads/helloworld.py', verbose=True)
-                stop_program(p)
-                stdout, stderr = p.communicate()
-                count = 0
-                for line in stdout.decode('utf-8').split('\n'):
-                    if line.strip() == 'Hello World!':
-                        count += 1
-                assert count == num_payloads, "Read %d hello worlds" % count
+            for _ in range(num_payloads):
+                pyrasite.inject(p.pid, HELLOWORLD)
         finally:
-            os.unlink(program)
+            stdout, stderr = stop_program(p)
+        count = sum(1 for line in stdout.splitlines()
+                    if line.strip() == 'Hello World!')
+        assert count == num_payloads, \
+            "Read %d hello worlds from %s:\n%s\n%s" % (
+                count, exe, stdout, stderr)
+    finally:
+        os.unlink(program)
 
-    def test_pyrasite_script(self):
-        program = generate_program()
+
+@pytest.mark.parametrize('exe', _interpreters_or_skip())
+def test_pyrasite_script(exe, gdb_available):
+    program = generate_program()
+    try:
+        p = run_program(program, exe=exe)
         try:
-            for exe in interpreters():
-                print("sys.executable = %s" % sys.executable)
-                print("injecting into %s" % exe)
-                p = run_program(program, exe=exe)
-                subprocess.call([sys.executable, 'pyrasite/main.py',
-                    str(p.pid), 'pyrasite/payloads/helloworld.py'],
-                    env={'PYTHONPATH': os.getcwd()})
-                stop_program(p)
-                stdout, stderr = p.communicate()
-                self.assert_output_contains(stdout, stderr, 'Hello World!')
+            subprocess.run(
+                [sys.executable, '-m', 'pyrasite.main', str(p.pid),
+                 HELLOWORLD],
+                check=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+            )
         finally:
-            os.unlink(program)
+            stdout, stderr = stop_program(p)
+        assert 'Hello World!' in stdout, \
+            "pyrasite CLI injection into %s failed:\n%s\n%s" % (
+                exe, stdout, stderr)
+    finally:
+        os.unlink(program)
 
+
+def test_injection_into_path_with_spaces(gdb_available):
+    program = generate_program()
+
+    # Put the payload in a directory whose name contains spaces and quotes.
+    import tempfile
+    directory = tempfile.mkdtemp(prefix='pyrasite payload "quoted" ')
+    payload = os.path.join(directory, 'hello world.py')
+    with open(payload, 'w') as f:
+        f.write('print("Hello from a quoted path!", flush=True)\n')
+    try:
+        p = run_program(program)
+        try:
+            pyrasite.inject(p.pid, payload)
+        finally:
+            stdout, stderr = stop_program(p)
+        assert 'Hello from a quoted path!' in stdout, \
+            "%s\n%s" % (stdout, stderr)
+    finally:
+        os.unlink(program)
+        os.unlink(payload)
+        os.rmdir(directory)
+
+
+def _write_payload(source):
+    fd, path = tempfile.mkstemp(prefix='pyrasite-payload-', suffix='.py')
+    with os.fdopen(fd, 'w') as f:
+        f.write(source)
+    return path
+
+
+@pytest.mark.parametrize('threads', [1, 4])
+def test_payload_exception_is_reported(threads, gdb_available):
+    """A failing payload must raise in the client and leave the target alive.
+
+    Reporting the error must not import anything inside the target: in a
+    process with busy threads the import machinery can be extremely slow.
+    """
+    program = generate_program(threads=threads)
+    payload = _write_payload('raise RuntimeError("boom from payload")\n')
+    try:
+        p = run_program(program)
+        try:
+            with pytest.raises(pyrasite.injector.InjectionError) as excinfo:
+                pyrasite.inject(p.pid, payload)
+            assert 'RuntimeError' in str(excinfo.value)
+            assert 'boom from payload' in str(excinfo.value)
+            # The wrapper catches the exception, so the target keeps running.
+            assert p.poll() is None
+        finally:
+            stdout, stderr = stop_program(p)
+        assert 'boom from payload' in stderr, \
+            "Expected the traceback on the target's stderr:\n%s\n%s" % (
+                stdout, stderr)
+    finally:
+        os.unlink(program)
+        os.unlink(payload)

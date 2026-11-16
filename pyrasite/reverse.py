@@ -19,21 +19,18 @@
 =============================================================
 """
 
-import sys
+import os
 import socket
-import traceback
+import sys
 import threading
+import traceback
 from code import InteractiveConsole
-
-if sys.version_info[0] == 3:
-    from io import StringIO
-else:
-    from StringIO import StringIO
+from io import StringIO
 
 import pyrasite
 
 
-class ReverseConnection(threading.Thread, pyrasite.PyrasiteIPC):
+class ReverseConnection(pyrasite.PyrasiteIPC, threading.Thread):
     """A payload that connects to a given host:port and receives commands"""
 
     host = 'localhost'
@@ -41,57 +38,56 @@ class ReverseConnection(threading.Thread, pyrasite.PyrasiteIPC):
     reliable = True
 
     def __init__(self, host=None, port=None):
-        super(ReverseConnection, self).__init__()
+        default_host, default_port = self.host, self.port
+        pyrasite.PyrasiteIPC.__init__(self, pid=os.getpid())
+        threading.Thread.__init__(self, daemon=True)
         self.sock = None
-        if host:
-            self.host = host
-        if port:
-            self.port = port
+        self.host = host or default_host
+        self.port = port or default_port
 
     def on_connect(self):
-        """Called when we successfuly connect to `self.host`"""
+        """Called when we successfully connect to `self.host`"""
 
     def on_command(self, cmd):
         """Called when the host sends us a command"""
 
-    def run(self):
-        running = True
-        while running:
+    def _connect(self):
+        last_error = None
+        for res in socket.getaddrinfo(self.host, self.port,
+                                      socket.AF_UNSPEC, socket.SOCK_STREAM):
+            af, socktype, proto, canonname, sa = res
             try:
-                for res in socket.getaddrinfo(self.host, self.port,
-                        socket.AF_UNSPEC, socket.SOCK_STREAM):
-                    af, socktype, proto, canonname, sa = res
-                    try:
-                        self.sock = socket.socket(af, socktype, proto)
-                        try:
-                            self.sock.connect(sa)
-                        except socket.error:
-                            self.sock.close()
-                            self.sock = None
-                            continue
-                    except socket.error:
-                        self.sock = None
-                        continue
+                sock = socket.socket(af, socktype, proto)
+                try:
+                    sock.connect(sa)
+                except OSError as e:
+                    sock.close()
+                    last_error = e
+                    continue
+            except OSError as e:
+                last_error = e
+                continue
+            self.sock = sock
+            return
+
+        raise OSError(
+            'pyrasite cannot establish reverse connection to %s:%d (%s)' %
+            (self.host, self.port, last_error))
+
+    def run(self):
+        try:
+            self._connect()
+            self.on_connect()
+            while True:
+                cmd = self.recv()
+                if not cmd or cmd.strip() == 'quit':
                     break
-
-                if not self.sock:
-                    raise Exception('pyrasite cannot establish reverse ' +
-                            'connection to %s:%d' % (self.host, self.port))
-
-                self.on_connect()
-
-                while running:
-                    cmd = self.recv()
-                    if cmd is None or cmd == "quit\n" or len(cmd) == 0:
-                        running = False
-                    else:
-                        running = self.on_command(cmd)
-
-            except:
-                traceback.print_exc()
-                running = False
-            if not running:
-                self.close()
+                if not self.on_command(cmd):
+                    break
+        except Exception:
+            traceback.print_exc()
+        finally:
+            self.close()
 
 
 class ReversePythonConnection(ReverseConnection):
@@ -99,19 +95,27 @@ class ReversePythonConnection(ReverseConnection):
 
     Executes Python commands and returns the output.
     """
+
+    def __init__(self, host=None, port=None):
+        super(ReversePythonConnection, self).__init__(host=host, port=port)
+        # Keep a persistent namespace so commands can define variables that
+        # are still available to later commands.
+        self.namespace = {'__name__': '__pyrasite__'}
+
     def on_command(self, cmd):
         buffer = StringIO()
-        sys.stdout = buffer
-        sys.stderr = buffer
-        output = ''
+        old_stdout, old_stderr = sys.stdout, sys.stderr
+        sys.stdout = sys.stderr = buffer
         try:
-            exec(cmd)
+            try:
+                exec(cmd, self.namespace)
+            except SystemExit:
+                pass
             output = buffer.getvalue()
-        except:
-            output = traceback.format_exc()
+        except BaseException:
+            output = buffer.getvalue() + traceback.format_exc()
         finally:
-            sys.stdout = sys.__stdout__
-            sys.stderr = sys.__stderr__
+            sys.stdout, sys.stderr = old_stdout, old_stderr
             buffer.close()
         self.send(output)
         return True
@@ -144,10 +148,12 @@ class DistantInteractiveConsole(InteractiveConsole):
 
         self.set_buffer()
 
+        if cmd is None:
+            raise EOFError
         return cmd
 
 
-class ReversePythonShell(threading.Thread, pyrasite.PyrasiteIPC):
+class ReversePythonShell(pyrasite.PyrasiteIPC, threading.Thread):
     """A reverse Python shell that behaves like Python interactive interpreter.
 
     """
@@ -157,35 +163,42 @@ class ReversePythonShell(threading.Thread, pyrasite.PyrasiteIPC):
     reliable = True
 
     def __init__(self, host=None, port=None):
-        super(ReversePythonShell, self).__init__()
+        default_host, default_port = self.host, self.port
+        pyrasite.PyrasiteIPC.__init__(self, pid=os.getpid())
+        threading.Thread.__init__(self, daemon=True)
+        self.host = host or default_host
+        self.port = port or default_port
+
+    def _connect(self):
+        last_error = None
+        for res in socket.getaddrinfo(self.host, self.port,
+                                      socket.AF_UNSPEC, socket.SOCK_STREAM):
+            af, socktype, proto, canonname, sa = res
+            try:
+                sock = socket.socket(af, socktype, proto)
+                try:
+                    sock.connect(sa)
+                except OSError as e:
+                    sock.close()
+                    last_error = e
+                    continue
+            except OSError as e:
+                last_error = e
+                continue
+            self.sock = sock
+            return
+
+        raise OSError(
+            'pyrasite cannot establish reverse connection to %s:%d (%s)' %
+            (self.host, self.port, last_error))
 
     def run(self):
         try:
-            for res in socket.getaddrinfo(self.host, self.port,
-                    socket.AF_UNSPEC, socket.SOCK_STREAM):
-                af, socktype, proto, canonname, sa = res
-                try:
-                    self.sock = socket.socket(af, socktype, proto)
-                    try:
-                        self.sock.connect(sa)
-                    except socket.error:
-                        self.sock.close()
-                        self.sock = None
-                        continue
-                except socket.error:
-                    self.sock = None
-                    continue
-                break
-
-            if not self.sock:
-                raise Exception('pyrasite cannot establish reverse ' +
-                        'connection to %s:%d' % (self.host, self.port))
-
+            self._connect()
             DistantInteractiveConsole(self).interact()
-
         except SystemExit:
             pass
-        except:
+        except Exception:
             traceback.print_exc(file=sys.__stderr__)
         finally:
             sys.stdout, sys.stderr = sys.__stdout__, sys.__stderr__

@@ -1,4 +1,7 @@
-from distutils import msvc9compiler
+try:
+    from distutils import msvc9compiler
+except ImportError:  # distutils was removed in Python 3.12
+    from setuptools._distutils import msvc9compiler
 import subprocess
 import os
 

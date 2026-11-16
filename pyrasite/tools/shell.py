@@ -44,7 +44,7 @@ def shell():
     print(payload)
 
     try:
-        import readline
+        import readline  # noqa: F401 - imported for its side effects
     except ImportError:
         pass
 

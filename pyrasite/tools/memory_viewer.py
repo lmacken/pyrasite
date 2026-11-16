@@ -27,10 +27,18 @@ __version__ = '1.0'
 import os
 import re
 import sys
-import urwid
-import urwid.raw_display
 
-from meliae import loader
+try:
+    import urwid
+    import urwid.raw_display
+    from meliae import loader
+except ImportError as e:
+    sys.stderr.write(
+        "The memory viewer requires the optional dependencies urwid and "
+        "meliae.\nInstall them with: pip install 'pyrasite[memory-viewer]'\n"
+        "(%s)\n" % e)
+    sys.exit(1)
+
 from os.path import join, abspath, dirname
 
 import pyrasite
@@ -75,7 +83,9 @@ class PyrasiteMemoryViewer(object):
                         'the python-debuginfo package installed.'
             self.object_output.set_text(value)
 
-    def get_object_buttons(self, group=[]):
+    def get_object_buttons(self, group=None):
+        if group is None:
+            group = []
         buttons = []
         for i, line in enumerate(str(self.summary).split('\n')):
             if i in (0, 1):
@@ -141,7 +151,7 @@ class PyrasiteMemoryViewer(object):
 def main():
     if len(sys.argv) != 2:
         print("[ pyrasite memory viewer ]\n")
-        print("Usage: %s <pid> <objects.json>" % sys.argv[0])
+        print("Usage: %s <pid>" % sys.argv[0])
         print("\n    pid - the running process id")
         print("")
         sys.exit(1)
@@ -158,7 +168,7 @@ def main():
     with open(filename) as sample_file, open(filename + '.tmp', 'w') as output_file:
         pattern = re.compile(r"(?<!\\)\\u([dD][0-9a-fA-F]{3,3})")
         for line in sample_file:
-            output_file.write(pattern.sub("#S\g<1>", line))
+            output_file.write(pattern.sub(r"#S\g<1>", line))
     os.rename(filename + '.tmp', filename)
 
     objects = loader.load(filename)

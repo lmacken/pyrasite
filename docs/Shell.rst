@@ -12,10 +12,9 @@ using the ``pyrasite-shell``.
 .. code-block:: bash
 
    $ pyrasite-shell $(pgrep -f "ipython")
-   Pyrasite Shell 2.0beta9
+   Pyrasite Shell 2.1.0
    Connected to 'ipython'
-   Python 2.7.2 (default, Oct 27 2011, 01:40:22) 
-   [GCC 4.6.1 20111003 (Red Hat 4.6.1-10)] on linux2
+   Python 3.12.3 (main, ...) [GCC ...] on linux
    >>> print(x)
    foo
    

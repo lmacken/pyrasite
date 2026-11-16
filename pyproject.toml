@@ -1,0 +1,63 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pyrasite"
+version = "2.1.0"
+description = "Inject code into a running Python process"
+readme = "README.rst"
+requires-python = ">=3.9"
+authors = [
+    {name = "Luke Macken", email = "lmacken@redhat.com"},
+]
+keywords = ["debugging", "injection", "runtime"]
+license = "GPL-3.0-or-later"
+license-files = ["LICENSE"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Intended Audience :: System Administrators",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Software Development :: Debuggers",
+    "Topic :: System :: Monitoring",
+]
+dependencies = []
+
+[project.optional-dependencies]
+memory-viewer = ["urwid>=2.0", "meliae"]
+test = ["pytest>=7", "pytest-cov"]
+
+[project.urls]
+Homepage = "https://github.com/lmacken/pyrasite"
+Documentation = "https://pyrasite.readthedocs.org"
+Source = "https://github.com/lmacken/pyrasite"
+
+[project.scripts]
+pyrasite = "pyrasite.main:main"
+pyrasite-memory-viewer = "pyrasite.tools.memory_viewer:main"
+pyrasite-shell = "pyrasite.tools.shell:shell"
+
+[tool.setuptools]
+include-package-data = true
+zip-safe = false
+
+[tool.setuptools.packages.find]
+include = ["pyrasite*"]
+
+[tool.setuptools.package-data]
+pyrasite = ["win/*"]
+
+[tool.pytest.ini_options]
+testpaths = ["pyrasite/tests"]
+addopts = "-ra"

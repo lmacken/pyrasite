@@ -1,8 +1,8 @@
 include LICENSE
 include README.rst
+include tox.ini
 
 graft pyrasite
-graft tests
 graft docs
 
 global-exclude *.pyc *.pyo *.swp *.swo

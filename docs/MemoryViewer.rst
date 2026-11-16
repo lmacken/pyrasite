@@ -4,7 +4,9 @@
 Pyrasite provides a tool to view object memory usage statistics, and the
 live value, of largest objects in your process. This requires `urwid
 <http://pypi.python.org/pypi/urwid>`_ and `meliae
-<https://launchpad.net/meliae>`_ to be installed.
+<https://launchpad.net/meliae>`_ to be installed::
+
+    pip install "pyrasite[memory-viewer]"
 
 ::
 

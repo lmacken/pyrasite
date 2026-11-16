@@ -3,6 +3,8 @@ API
 
 .. autofunction:: pyrasite.inject
 
+.. autoexception:: pyrasite.InjectionError
+
 .. autofunction:: pyrasite.inspect
 
 .. autoclass:: pyrasite.PyrasiteIPC

@@ -3,10 +3,8 @@
 pyrasite
 ========
 
-.. image:: https://api.travis-ci.org/lmacken/pyrasite.png?branch=develop
-   :target: http://travis-ci.org/lmacken/pyrasite
-.. image:: https://coveralls.io/repos/lmacken/pyrasite/badge.png?branch=develop
-   :target: https://coveralls.io/r/lmacken/pyrasite?branch=develop
+.. image:: https://github.com/lmacken/pyrasite/actions/workflows/ci.yml/badge.svg?branch=develop
+   :target: https://github.com/lmacken/pyrasite/actions/workflows/ci.yml
 .. image:: https://img.shields.io/pypi/v/pyrasite?style=flat
    :target: https://pypi.python.org/pypi/pyrasite
 
@@ -18,25 +16,74 @@ Tools for injecting arbitrary code into running Python processes.
 :documentation: https://pyrasite.rtfd.org
 :download: https://pypi.python.org/pypi/pyrasite
 :source: https://github.com/lmacken/pyrasite
-:screenshots: http://readthedocs.org/docs/pyrasite/en/latest/GUI.html
-:mailing list: https://fedorahosted.org/mailman/listinfo/pyrasite
-:jenkins: http://ci.csh.rit.edu/view/Pyrasite
-:irc: #pyrasite on Freenode
+:issues: https://github.com/lmacken/pyrasite/issues
 
 Requirements
 ~~~~~~~~~~~~
 
- * `gdb <https://www.gnu.org/s/gdb>`_ (version 7.3+ (or RHEL5+))
- 
+ * `gdb <https://www.gnu.org/s/gdb>`_ (version 7.3+)
+ * A Linux system whose ptrace policy allows attaching to the target
+   process.  See `ptrace_scope` below.
+
 On OS X you will need to have a codesigned gdb - see https://sourceware.org/gdb/wiki/BuildingOnDarwin
 if you get errors while running with --verbose which mention codesigning.
+
+Installation
+~~~~~~~~~~~~
+
+::
+
+    pipx install pyrasite
+
+or, for the optional memory viewer::
+
+    pip install "pyrasite[memory-viewer]"
 
 Compatibility
 ~~~~~~~~~~~~~
 
-Pyrasite works with Python 2.4 and newer. Injection works between versions
-as well, so you can run Pyrasite under Python 3 and inject into 2, and
-vice versa.
+Pyrasite runs on CPython 3.9 through 3.14. Injection works between versions
+as well, so you can run Pyrasite under one Python and inject into a process
+running another. Both the pyrasite client and the target process must be
+CPython.
+
+ptrace_scope
+~~~~~~~~~~~~
+
+Recent Linux distributions restrict ptrace so that a process may only be
+attached to by its ancestors. If ``/proc/sys/kernel/yama/ptrace_scope`` is
+non-zero you will see a warning. You can either allow attaching globally::
+
+    echo 0 | sudo tee /proc/sys/kernel/yama/ptrace_scope
+
+or let the target process opt in by calling ``prctl(PR_SET_PTRACER,
+PR_SET_PTRACER_ANY)``. On Fedora, SELinux may also need::
+
+    sudo setsebool -P deny_ptrace=off
+
+For multi-threaded programs pyrasite queues the payload with
+``Py_AddPendingCall`` so that it runs on a thread that already holds the GIL.
+If the target is blocked in C and never executes Python bytecode, use
+``--inject-method direct`` instead.
+
+Testing
+~~~~~~~
+
+::
+
+    pip install -e ".[test]"
+    pytest
+
+To run the suite against every supported interpreter with `uv
+<https://docs.astral.sh/uv/>`_::
+
+    uv python install 3.9 3.10 3.11 3.12 3.13 3.14
+    tox
+
+To test injecting from one interpreter into all of the others, set
+``PYRASITE_TEST_INTERPRETERS`` to a colon-separated list of interpreter
+paths before running pytest.
+
 
 pyrasite-gui
 ~~~~~~~~~~~~

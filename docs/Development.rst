@@ -61,8 +61,14 @@ Releasing
      ``lmacken``, repository ``pyrasite``, workflow ``publish.yml``, and
      environment ``pypi``.
    * On TestPyPI, add the same publisher with environment ``testpypi``.
+     TestPyPI is optional and uses a separate account database.
    * In the GitHub repository settings, create environments named ``pypi``
      and ``testpypi``.
+
+   To validate the PyPI publisher without publishing a new release, run the
+   **Publish** workflow manually with ``target: pypi`` and ``skip_existing``
+   enabled. The job still performs the OIDC exchange, then skips the files that
+   are already on PyPI.
 
 4. Commit, tag, and push the release. Pushing a tag that starts with a digit
    runs ``.github/workflows/publish.yml`` and publishes to PyPI::

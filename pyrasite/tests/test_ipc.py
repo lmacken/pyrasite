@@ -83,6 +83,12 @@ def test_cmd_keeps_namespace(ipc):
     assert ipc.cmd("print(pyrasite_test_value + 1)") == "42\n"
 
 
+def test_recv_returns_none_after_target_closes(ipc):
+    ipc.connect()
+    ipc.send("quit\n")
+    assert ipc.recv() is None
+
+
 def test_unreliable(ipc):
     ipc.reliable = False
     ipc.connect()

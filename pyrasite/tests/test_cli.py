@@ -26,6 +26,7 @@ import pytest
 import pyrasite
 from pyrasite.main import main
 from pyrasite.tests.utils import generate_program, run_program, stop_program
+from pyrasite.tools.shell import shell
 
 
 def test_version_matches_package_metadata():
@@ -118,6 +119,27 @@ def test_injection_from_stdin(target, monkeypatch):
     main([str(target.pid), "-"])
     stdout, stderr = stop_program(target)
     assert "payload from stdin" in stdout, "%s\n%s" % (stdout, stderr)
+
+
+def test_shell_command_can_outlast_the_connect_timeout(target, monkeypatch, capsys):
+    """A slow command must not hit the connect-back timeout (#51).
+
+    PYRASITE_IPC_TIMEOUT bounds how long we wait for the reverse connection.
+    Applying it to the command socket made any remotely executed command that
+    took longer than a few seconds fail with socket.timeout.
+    """
+    monkeypatch.setenv("PYRASITE_IPC_TIMEOUT", "1")
+    monkeypatch.setattr(sys, "argv", ["pyrasite-shell", str(target.pid)])
+    monkeypatch.setattr(
+        sys,
+        "stdin",
+        io.StringIO("import time; time.sleep(1.5)\nprint('slow command finished')\n"),
+    )
+
+    shell()
+
+    out = capsys.readouterr().out
+    assert "slow command finished" in out
 
 
 @pytest.mark.skipif(not hasattr(os, "mkfifo"), reason="requires mkfifo")

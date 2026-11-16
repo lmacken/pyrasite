@@ -12,6 +12,8 @@ Changelog
 - Report injection failures from ``pyrasite-shell`` and the memory viewer as
   short errors instead of tracebacks, and close the listening socket when a
   connection attempt fails.
+- Keep ``pyrasite-shell`` connected when a command takes longer than the
+  connect timeout, and exit cleanly if the target closes the connection.
 - Fail clearly when the memory dump used by ``pyrasite-memory-viewer`` is not
   created instead of raising ``FileNotFoundError``.
 

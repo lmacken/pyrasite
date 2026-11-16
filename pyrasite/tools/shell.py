@@ -50,7 +50,20 @@ def shell():
     print("Pyrasite Shell %s" % pyrasite.__version__)
     print("Connected to '%s'" % ipc.title)
 
-    prompt, payload = ipc.recv().split("\n", 1)
+    # PYRASITE_IPC_TIMEOUT only bounds the connect-back wait. Once connected,
+    # a command can legitimately take longer than that to finish, so let the
+    # command socket block until the target sends its response.
+    ipc.sock.settimeout(None)
+
+    greeting = ipc.recv()
+    if greeting is None:
+        print(
+            "Error: connection to pid %s closed during startup" % pid,
+            file=sys.stderr,
+        )
+        ipc.close()
+        sys.exit(1)
+    prompt, payload = greeting.split("\n", 1)
     print(payload)
 
     with contextlib.suppress(ImportError):
@@ -67,16 +80,25 @@ def shell():
                 input_line = "None"
                 print("")
 
-            ipc.send(input_line)
-            payload = ipc.recv()
+            try:
+                ipc.send(input_line)
+                payload = ipc.recv()
+            except KeyboardInterrupt:
+                print("")
+                sys.exit(130)
+            except OSError as exc:
+                print(
+                    "\nError: lost connection to pid %s: %s" % (pid, exc),
+                    file=sys.stderr,
+                )
+                sys.exit(1)
+
             if payload is None:
+                print("\nConnection to pid %s closed." % pid, file=sys.stderr)
                 break
             prompt, payload = payload.split("\n", 1)
             if payload != "":
                 print(payload)
-    except BaseException:
-        print("")
-        raise
     finally:
         ipc.close()
 

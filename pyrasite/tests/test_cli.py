@@ -19,9 +19,9 @@ import os
 
 import pytest
 
-from pyrasite.tests.utils import generate_program, run_program, stop_program
-from pyrasite.main import main
 import pyrasite
+from pyrasite.main import main
+from pyrasite.tests.utils import generate_program, run_program, stop_program
 
 
 def test_version_matches_package_metadata():
@@ -30,7 +30,7 @@ def test_version_matches_package_metadata():
     except ImportError:  # pragma: no cover - Python 3.7 only
         return
     try:
-        installed = version('pyrasite')
+        installed = version("pyrasite")
     except PackageNotFoundError:
         pytest.skip("pyrasite is not installed in this environment")
     assert pyrasite.__version__ == installed
@@ -40,41 +40,41 @@ def test_usage(capsys):
     with pytest.raises(SystemExit) as excinfo:
         main([])
     assert excinfo.value.code == 1
-    assert 'usage:' in capsys.readouterr().out
+    assert "usage:" in capsys.readouterr().out
 
 
 def test_list_payloads(capsys):
     with pytest.raises(SystemExit):
-        main(['-l'])
+        main(["-l"])
     value = capsys.readouterr().out
-    assert 'Available payloads:' in value, repr(value)
-    assert 'helloworld.py' in value, repr(value)
+    assert "Available payloads:" in value, repr(value)
+    assert "helloworld.py" in value, repr(value)
 
 
 def test_invalid_pid(capsys):
     with pytest.raises(SystemExit) as excinfo:
-        main(['foo', 'bar'])
+        main(["foo", "bar"])
     assert excinfo.value.code == 2
-    assert 'Error: The first argument must be a pid' in capsys.readouterr().err
+    assert "Error: The first argument must be a pid" in capsys.readouterr().err
 
 
 def test_missing_pid(capsys):
     with pytest.raises(SystemExit) as excinfo:
-        main(['--verbose'])
+        main(["--verbose"])
     assert excinfo.value.code == 2
-    assert 'Error: The first argument must be a pid' in capsys.readouterr().err
+    assert "Error: The first argument must be a pid" in capsys.readouterr().err
 
 
 def test_invalid_payload(capsys):
     with pytest.raises(SystemExit) as excinfo:
-        main([str(os.getpid()), 'foo'])
+        main([str(os.getpid()), "foo"])
     assert excinfo.value.code == 3
     assert "Error: Invalid path or file doesn't exist" in capsys.readouterr().err
 
 
 def test_version(capsys):
     with pytest.raises(SystemExit) as excinfo:
-        main(['--version'])
+        main(["--version"])
     assert excinfo.value.code == 0
     assert pyrasite.__version__ in capsys.readouterr().out
 
@@ -91,11 +91,11 @@ def target(gdb_available):
 
 
 def test_injection(target):
-    main([str(target.pid), 'helloworld.py'])
+    main([str(target.pid), "helloworld.py"])
     stdout, _ = stop_program(target)
-    assert 'Hello World!' in stdout
+    assert "Hello World!" in stdout
 
 
 def test_injection_localterm(target, capsys):
-    main([str(target.pid), 'helloworld.py', '--output', 'localterm'])
-    assert 'Hello World!' in capsys.readouterr().out
+    main([str(target.pid), "helloworld.py", "--output", "localterm"])
+    assert "Hello World!" in capsys.readouterr().out

@@ -20,20 +20,20 @@
 """
 
 import os
+import platform
+import re
 import socket
 import stat
 import struct
 import subprocess
 import tempfile
 import traceback
-import platform
-
 from os.path import abspath, dirname, join
 
 import pyrasite
 
 
-class PyrasiteIPC(object):
+class PyrasiteIPC:
     """Pyrasite Inter-Python Communication.
 
     This object is used in communicating to or from another Python process.
@@ -58,15 +58,22 @@ class PyrasiteIPC(object):
     :class:`pyrasite.reverse.ReverseConnection`.
 
     """
+
     # Allow subclasses to disable this and just send/receive raw data, as
     # opposed to prepending a length header, to ensure reliability. The reason
     # to enable 'unreliable' connections is so we can still use our reverse
     # shell payloads with netcat.
     reliable = True
 
-    def __init__(self, pid, reverse='ReversePythonConnection', timeout=5,
-                 inject_timeout=60, inject_method=None):
-        super(PyrasiteIPC, self).__init__()
+    def __init__(
+        self,
+        pid,
+        reverse="ReversePythonConnection",
+        timeout=5,
+        inject_timeout=60,
+        inject_method=None,
+    ):
+        super().__init__()
         self.pid = pid
         self.sock = None
         self.server_sock = None
@@ -86,22 +93,26 @@ class PyrasiteIPC(object):
 
     @property
     def title(self):
-        if not getattr(self, '_title', None):
-            if platform.system() == 'Windows':
+        if not getattr(self, "_title", None):
+            if platform.system() == "Windows":
                 p = subprocess.Popen(
                     'tasklist /v /fi "pid eq %d" /nh /fo csv' % self.pid,
-                    stdout=subprocess.PIPE, shell=True)
-                tmp = p.communicate()[0].decode('utf-8', 'replace').strip().split(',')
+                    stdout=subprocess.PIPE,
+                    shell=True,
+                )
+                tmp = p.communicate()[0].decode("utf-8", "replace").strip().split(",")
                 if tmp[-1] == '"N/A"':
                     self._title = tmp[0][1:-1]
                 else:
                     self._title = tmp[-1][1:-1]
             else:
                 p = subprocess.Popen(
-                    ['ps', '-o', 'command=', '-p', str(self.pid)],
-                    stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                    ["ps", "-o", "command=", "-p", str(self.pid)],
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                )
                 out, _ = p.communicate()
-                self._title = out.decode('utf-8', 'replace')
+                self._title = out.decode("utf-8", "replace")
         return self._title.strip()
 
     def connect(self):
@@ -115,14 +126,15 @@ class PyrasiteIPC(object):
 
     def listen(self):
         """Listen on a random port"""
-        for res in socket.getaddrinfo('localhost', None, socket.AF_UNSPEC,
-                                      socket.SOCK_STREAM, 0, 0):
-            af, socktype, proto, canonname, sa = res
+        self.server_sock = None
+        for res in socket.getaddrinfo(
+            "localhost", None, socket.AF_UNSPEC, socket.SOCK_STREAM, 0, 0
+        ):
+            af, socktype, proto, _canonname, sa = res
             try:
                 server_sock = socket.socket(af, socktype, proto)
                 try:
-                    server_sock.setsockopt(socket.SOL_SOCKET,
-                                           socket.SO_REUSEADDR, 1)
+                    server_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
                     server_sock.bind(sa)
                     server_sock.listen(1)
                 except OSError:
@@ -136,31 +148,32 @@ class PyrasiteIPC(object):
             break
 
         if not self.server_sock:
-            raise Exception('pyrasite was unable to setup a ' +
-                            'local server socket')
+            raise RuntimeError("pyrasite was unable to setup a local server socket")
 
         self.hostname, self.port = self.server_sock.getsockname()[0:2]
 
     def create_payload(self):
         """Write out a reverse python connection payload with a custom port"""
-        fd, filename = tempfile.mkstemp(prefix='pyrasite-', suffix='.py')
+        fd, filename = tempfile.mkstemp(prefix="pyrasite-", suffix=".py")
         path = dirname(abspath(pyrasite.__file__))
-        with os.fdopen(fd, 'w') as tmp:
-            with open(join(path, 'reverse.py')) as payload:
+        with os.fdopen(fd, "w") as tmp:
+            with open(join(path, "reverse.py")) as payload:
                 for line in payload:
-                    if line.startswith('#'):
+                    if line.startswith("#"):
                         continue
-                    line = line.replace(
-                        "host = 'localhost'", "host = %r" % self.hostname)
-                    line = line.replace('port = 9001', 'port = %d' % self.port)
+                    line = re.sub(
+                        r"host = [\"']localhost[\"']",
+                        "host = %r" % self.hostname,
+                        line,
+                    )
+                    line = line.replace("port = 9001", "port = %d" % self.port)
                     if not self.reliable:
-                        line = line.replace('reliable = True',
-                                            'reliable = False')
+                        line = line.replace("reliable = True", "reliable = False")
                     tmp.write(line)
 
-            tmp.write('%s().start()\n' % self.reverse)
+            tmp.write("%s().start()\n" % self.reverse)
 
-        if platform.system() != 'Windows':
+        if platform.system() != "Windows":
             os.chmod(filename, stat.S_IREAD | stat.S_IRGRP | stat.S_IROTH)
 
         return filename
@@ -169,9 +182,12 @@ class PyrasiteIPC(object):
         """Inject the payload into the process."""
         filename = self.create_payload()
         try:
-            pyrasite.inject(self.pid, filename,
-                            timeout=self.inject_timeout,
-                            method=self.inject_method)
+            pyrasite.inject(
+                self.pid,
+                filename,
+                timeout=self.inject_timeout,
+                method=self.inject_method,
+            )
         finally:
             os.unlink(filename)
 
@@ -182,8 +198,9 @@ class PyrasiteIPC(object):
             (clientsocket, address) = self.server_sock.accept()
         except socket.timeout:
             raise RuntimeError(
-                'Timed out after %s seconds waiting for pid %s to connect '
-                'back. Is ptrace enabled?' % (self.timeout, self.pid))
+                "Timed out after %s seconds waiting for pid %s to connect "
+                "back. Is ptrace enabled?" % (self.timeout, self.pid)
+            ) from None
         self.sock = clientsocket
         self.sock.settimeout(self.timeout)
         self.address = address
@@ -196,17 +213,17 @@ class PyrasiteIPC(object):
         Send a python command to exec in the process and return the output
         """
         if not isinstance(cmd, str):
-            cmd = cmd.decode('utf-8')
-        self.send(cmd + '\n')
+            cmd = cmd.decode("utf-8")
+        self.send(cmd + "\n")
         return self.recv()
 
     def send(self, data):
         """Send arbitrary data to the process via self.sock"""
         if isinstance(data, str):
-            data = data.encode('utf-8')
-        header = b''
+            data = data.encode("utf-8")
+        header = b""
         if self.reliable:
-            header = struct.pack('<L', len(data))
+            header = struct.pack("<L", len(data))
         self.sock.sendall(header + data)
 
     def recv(self):
@@ -214,19 +231,19 @@ class PyrasiteIPC(object):
         if self.reliable:
             header_data = self.recv_bytes(4)
             if len(header_data) == 4:
-                msg_len = struct.unpack('<L', header_data)[0]
+                msg_len = struct.unpack("<L", header_data)[0]
                 data = self.recv_bytes(msg_len)
                 if len(data) == msg_len:
-                    return data.decode('utf-8')
+                    return data.decode("utf-8")
         else:
             data = self.sock.recv(4096)
             if data:
-                return data.decode('utf-8')
+                return data.decode("utf-8")
         return None
 
     def recv_bytes(self, n):
         """Receive n bytes from a socket"""
-        data = b''
+        data = b""
         while len(data) < n:
             chunk = self.sock.recv(n - len(data))
             if not chunk:
@@ -238,7 +255,7 @@ class PyrasiteIPC(object):
         try:
             if self.sock:
                 self.sock.close()
-            if getattr(self, 'server_sock', None):
+            if getattr(self, "server_sock", None):
                 self.server_sock.close()
         except OSError:
             traceback.print_exc()

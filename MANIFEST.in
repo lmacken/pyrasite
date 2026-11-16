@@ -1,5 +1,7 @@
 include LICENSE
 include README.rst
+include CHANGELOG.rst
+include pyproject.toml
 include tox.ini
 
 graft pyrasite

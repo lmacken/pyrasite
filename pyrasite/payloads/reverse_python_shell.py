@@ -16,7 +16,9 @@
 # Copyright (C) 2011-2013 Red Hat, Inc., Luke Macken <lmacken@redhat.com>
 
 import sys
+
 import pyrasite
+
 
 class ReversePythonShell(pyrasite.ReversePythonConnection):
     port = 9001
@@ -24,5 +26,6 @@ class ReversePythonShell(pyrasite.ReversePythonConnection):
 
     def on_connect(self):
         self.send("Python %s\nType 'quit' to exit\n>>> " % sys.version)
+
 
 ReversePythonShell().start()

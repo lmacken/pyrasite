@@ -8,12 +8,14 @@ Running from git
 
     git clone https://github.com/lmacken/pyrasite.git
     cd pyrasite
-    python -m pip install -e ".[test]"
+    python -m pip install -e ".[dev]"
     python -m pyrasite.main --help
 
-Run the test suite with::
+Run the test suite and linters with::
 
     pytest
+    ruff check .
+    ruff format --check .
 
 To run it against every supported Python version (3.9 through 3.15), use
 `tox <https://tox.wiki/>`_. The ``tox-uv`` plugin automatically downloads
@@ -34,7 +36,23 @@ Injection tests need ``gdb`` and permission to attach to the target process.
 The test targets opt in to being traced using ``prctl(PR_SET_PTRACER, ...)``,
 so they also work when ``kernel.yama.ptrace_scope`` is ``1``.
 
+Documentation is built with Sphinx::
+
+    tox -e docs
+
 Style
 -----
 
- * `PEP8 <https://peps.python.org/pep-0008/>`_
+Code is formatted and linted with `ruff <https://docs.astral.sh/ruff/>`_.
+Run ``ruff format .`` before committing, or use ``tox -e lint``.
+
+Releasing
+---------
+
+1. Update the version in ``pyrasite/__init__.py`` and ``CHANGELOG.rst``.
+2. Build and validate the distributions::
+
+       python -m build
+       twine check dist/*
+
+3. Upload with ``twine upload dist/*`` (or use PyPI trusted publishing).

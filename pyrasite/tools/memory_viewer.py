@@ -22,11 +22,12 @@ When selecting an object, we attach to the running process and obtain
 the value of the object itself.
 """
 
-__version__ = '1.0'
+__version__ = "1.0"
 
 import os
 import re
 import sys
+import tempfile
 
 try:
     import urwid
@@ -36,25 +37,26 @@ except ImportError as e:
     sys.stderr.write(
         "The memory viewer requires the optional dependencies urwid and "
         "meliae.\nInstall them with: pip install 'pyrasite[memory-viewer]'\n"
-        "(%s)\n" % e)
+        "(%s)\n" % e
+    )
     sys.exit(1)
 
-from os.path import join, abspath, dirname
+from os.path import abspath, dirname, join
 
 import pyrasite
 
 
-class PyrasiteMemoryViewer(object):
-    palette = [
-        ('body',            'black',        'light gray', 'standout'),
-        ('header',          'white',        'dark red',   'bold'),
-        ('button normal',   'light gray',   'dark blue', 'standout'),
-        ('button select',   'white',        'dark green'),
-        ('button disabled', 'dark gray',    'dark blue'),
-        ('bigtext',         'white',        'black'),
-        ('object_output',   'light gray',   'black'),
-        ('exit',            'white',        'dark red'),
-        ]
+class PyrasiteMemoryViewer:
+    palette = (
+        ("body", "black", "light gray", "standout"),
+        ("header", "white", "dark red", "bold"),
+        ("button normal", "light gray", "dark blue", "standout"),
+        ("button select", "white", "dark green"),
+        ("button disabled", "dark gray", "dark blue"),
+        ("bigtext", "white", "black"),
+        ("object_output", "light gray", "black"),
+        ("exit", "white", "dark red"),
+    )
 
     def __init__(self, pid, objects):
         self.pid = pid
@@ -65,35 +67,36 @@ class PyrasiteMemoryViewer(object):
         w = urwid.RadioButton(g, name, False, on_state_change=fn)
         w.obj = obj
         if disabled:
-            w = urwid.AttrWrap(w, 'button normal', 'button disabled')
+            w = urwid.AttrWrap(w, "button normal", "button disabled")
         else:
-            w = urwid.AttrWrap(w, 'button normal', 'button select')
+            w = urwid.AttrWrap(w, "button normal", "button select")
         return w
 
     def create_disabled_radio_button(self, name):
-        w = urwid.Text('    ' + name)
-        w = urwid.AttrWrap(w, 'button disabled')
+        w = urwid.Text("    " + name)
+        w = urwid.AttrWrap(w, "button disabled")
         return w
 
     def display_object(self, w, state):
         if state:
             value = pyrasite.inspect(self.pid, w.obj.max_address)
             if not value:
-                value = 'Unable to inspect remote object. Make sure you have ' \
-                        'the python-debuginfo package installed.'
+                value = (
+                    "Unable to inspect remote object. Make sure you have "
+                    "the python-debuginfo package installed."
+                )
             self.object_output.set_text(value)
 
     def get_object_buttons(self, group=None):
         if group is None:
             group = []
         buttons = []
-        for i, line in enumerate(str(self.summary).split('\n')):
+        for i, line in enumerate(str(self.summary).split("\n")):
             if i in (0, 1):
                 rb = self.create_disabled_radio_button(line)
             else:
                 obj = self.summary.summaries[i - 2]
-                rb = self.create_radio_button(group, line, obj,
-                                              self.display_object)
+                rb = self.create_radio_button(group, line, obj, self.display_object)
             buttons.append(rb)
         return buttons
 
@@ -101,14 +104,14 @@ class PyrasiteMemoryViewer(object):
         self.object_buttons = self.get_object_buttons()
 
         # Title
-        self.bigtext = urwid.BigText('pyrasite ' + __version__, None)
+        self.bigtext = urwid.BigText("pyrasite " + __version__, None)
         self.bigtext.set_font(urwid.Thin6x6Font())
-        bt = urwid.Padding(self.bigtext, 'left', None)
-        bt = urwid.AttrWrap(bt, 'bigtext')
+        bt = urwid.Padding(self.bigtext, "left", None)
+        bt = urwid.AttrWrap(bt, "bigtext")
 
         # Create the object output
-        self.object_output = urwid.Text("", wrap='any')
-        ca = urwid.AttrWrap(self.object_output, 'object_output')
+        self.object_output = urwid.Text("", wrap="any")
+        ca = urwid.AttrWrap(self.object_output, "object_output")
 
         # Select the first object
         self.object_buttons[2].set_state(True)
@@ -116,35 +119,36 @@ class PyrasiteMemoryViewer(object):
         # ListBox
         obj_out = urwid.Pile([urwid.Divider(), ca])
         objects = urwid.Pile(self.object_buttons)
-        l = [objects, obj_out]
-        w = urwid.ListBox(urwid.SimpleListWalker(l))
+        widgets = [objects, obj_out]
+        w = urwid.ListBox(urwid.SimpleListWalker(widgets))
 
         # Frame
-        w = urwid.AttrWrap(w, 'body')
+        w = urwid.AttrWrap(w, "body")
         w = urwid.Frame(header=bt, body=w)
 
         # Exit message
-        exit = urwid.BigText(('exit', " Quit? "), urwid.Thin6x6Font())
-        exit = urwid.Overlay(exit, w, 'center', None, 'middle', None)
+        exit = urwid.BigText(("exit", " Quit? "), urwid.Thin6x6Font())
+        exit = urwid.Overlay(exit, w, "center", None, "middle", None)
 
         return w, exit
 
     def unhandled_input(self, key):
-        if key in ('f8', 'q'):
+        if key in ("f8", "q"):
             self.loop.widget = self.exit_view
             return True
         if self.loop.widget != self.exit_view:
             return
-        if key in ('y', 'Y'):
+        if key in ("y", "Y"):
             raise urwid.ExitMainLoop()
-        if key in ('n', 'N'):
+        if key in ("n", "N"):
             self.loop.widget = self.view
             return True
 
     def main(self):
         self.view, self.exit_view = self.setup_view()
-        self.loop = urwid.MainLoop(self.view, self.palette,
-            unhandled_input=self.unhandled_input)
+        self.loop = urwid.MainLoop(
+            self.view, self.palette, unhandled_input=self.unhandled_input
+        )
         self.loop.run()
 
 
@@ -157,19 +161,18 @@ def main():
         sys.exit(1)
 
     pid = int(sys.argv[1])
-    payload = abspath(join(dirname(__file__), '..',
-            'payloads', 'dump_memory.py'))
+    payload = abspath(join(dirname(__file__), "..", "payloads", "dump_memory.py"))
     pyrasite.inject(pid, payload)
 
-    filename = '/tmp/pyrasite-%d-objects.json' % pid
-    
+    filename = os.path.join(tempfile.gettempdir(), "pyrasite-%d-objects.json" % pid)
+
     # Work around bug caused by meliae dumping unicode strings:
     # https://bugs.launchpad.net/meliae/+bug/876810
-    with open(filename) as sample_file, open(filename + '.tmp', 'w') as output_file:
+    with open(filename) as sample_file, open(filename + ".tmp", "w") as output_file:
         pattern = re.compile(r"(?<!\\)\\u([dD][0-9a-fA-F]{3,3})")
         for line in sample_file:
             output_file.write(pattern.sub(r"#S\g<1>", line))
-    os.rename(filename + '.tmp', filename)
+    os.rename(filename + ".tmp", filename)
 
     objects = loader.load(filename)
     objects.compute_referrers()
@@ -177,5 +180,5 @@ def main():
     PyrasiteMemoryViewer(pid=pid, objects=objects).main()
 
 
-if '__main__' == __name__:
+if __name__ == "__main__":
     main()

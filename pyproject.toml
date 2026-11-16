@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pyrasite"
-version = "2.1.0"
+dynamic = ["version"]
 description = "Inject code into a running Python process"
 readme = "README.rst"
 requires-python = ">=3.9"
@@ -23,6 +23,7 @@ classifiers = [
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: Implementation :: CPython",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
@@ -38,11 +39,14 @@ dependencies = []
 [project.optional-dependencies]
 memory-viewer = ["urwid>=2.0", "meliae"]
 test = ["pytest>=7", "pytest-cov"]
+dev = ["pytest>=7", "pytest-cov", "ruff>=0.17,<0.18", "sphinx>=7", "build>=1.2"]
+docs = ["sphinx>=7"]
 
 [project.urls]
 Homepage = "https://github.com/lmacken/pyrasite"
-Documentation = "https://pyrasite.readthedocs.org"
+Documentation = "https://pyrasite.readthedocs.io"
 Source = "https://github.com/lmacken/pyrasite"
+Changelog = "https://github.com/lmacken/pyrasite/blob/develop/CHANGELOG.rst"
 
 [project.scripts]
 pyrasite = "pyrasite.main:main"
@@ -53,6 +57,9 @@ pyrasite-shell = "pyrasite.tools.shell:shell"
 include-package-data = true
 zip-safe = false
 
+[tool.setuptools.dynamic]
+version = {attr = "pyrasite.__version__"}
+
 [tool.setuptools.packages.find]
 include = ["pyrasite*"]
 
@@ -62,3 +69,24 @@ pyrasite = ["win/*"]
 [tool.pytest.ini_options]
 testpaths = ["pyrasite/tests"]
 addopts = "-ra"
+
+[tool.coverage.run]
+source = ["pyrasite"]
+omit = ["pyrasite/payloads/*", "pyrasite/tools/*"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if __name__ == .__main__.:",
+]
+
+[tool.ruff]
+target-version = "py39"
+line-length = 88
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W", "UP", "B", "SIM", "RUF"]
+# Percent formatting is still idiomatic for the generated bootstrap code and
+# for log-style messages, so it is not converted wholesale to f-strings.
+ignore = ["UP031"]

@@ -18,18 +18,18 @@
 import subprocess
 
 
-def inspect(pid, address, gdb_prefix=''):
+def inspect(pid, address, gdb_prefix=""):
     """Return the value of an object in a given process at the specified address"""
     argv = [
-        (gdb_prefix or '') + 'gdb',
-        '--quiet',
-        '-p', str(pid),
-        '-batch',
-        '-eval-command=print (PyObject *)%s' % address,
+        (gdb_prefix or "") + "gdb",
+        "--quiet",
+        "-p",
+        str(pid),
+        "-batch",
+        "-eval-command=print (PyObject *)%s" % address,
     ]
-    p = subprocess.run(argv, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                       universal_newlines=True)
+    p = subprocess.run(argv, capture_output=True, text=True)
     for line in p.stdout.splitlines():
-        if line.startswith('$1 = '):
+        if line.startswith("$1 = "):
             return line[5:]
     return None

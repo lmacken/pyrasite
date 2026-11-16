@@ -37,6 +37,7 @@ picks one automatically based on the number of threads in the target, and
     inline, so gdb returns once it has finished.
 """
 
+import contextlib
 import os
 import platform
 import re
@@ -57,11 +58,11 @@ def _c_string(value):
     :func:`repr`, because gdb treats single quotes as character literals.
     """
     escaped = (
-        value.replace('\\', '\\\\')
+        value.replace("\\", "\\\\")
         .replace('"', '\\"')
-        .replace('\n', '\\n')
-        .replace('\r', '\\r')
-        .replace('\t', '\\t')
+        .replace("\n", "\\n")
+        .replace("\r", "\\r")
+        .replace("\t", "\\t")
     )
     return '"%s"' % escaped
 
@@ -95,107 +96,118 @@ def build_code(filename, marker=None, threaded=False):
     """
     filename = os.path.abspath(filename)
     payload_dir = os.path.dirname(filename)
-    package_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+    package_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
     lines = [
-        'import sys',
-        'sys.path.insert(0, %s)' % _python_string(payload_dir),
-        'sys.path.insert(0, %s)' % _python_string(package_root),
-        '',
+        "import sys",
+        "sys.path.insert(0, %s)" % _python_string(payload_dir),
+        "sys.path.insert(0, %s)" % _python_string(package_root),
+        "",
         # Format the traceback by hand instead of importing the traceback
         # module.  Importing anything from the injected thread triggers the
         # import machinery, which can take seconds (or longer) in a busy
         # multi-threaded process because every import releases and reacquires
         # the GIL.  Everything below only uses builtins and sys.
-        'def __pyrasite_traceback(exc):',
+        "def __pyrasite_traceback(exc):",
         '    lines = ["Traceback (most recent call last):"]',
-        '    tb = exc.__traceback__',
+        "    tb = exc.__traceback__",
         # Drop the frame belonging to this bootstrap; the useful part of the
         # traceback starts at the payload.
-        '    if tb is not None and tb.tb_frame.f_code.co_name =='
-        ' "__pyrasite_inject":',
-        '        tb = tb.tb_next',
-        '    while tb is not None:',
-        '        code = tb.tb_frame.f_code',
-        '        lines.append(',
-        '            \'  File "%s", line %d, in %s\' %',
-        '            (code.co_filename, tb.tb_lineno, code.co_name))',
-        '        tb = tb.tb_next',
+        '    if tb is not None and tb.tb_frame.f_code.co_name == "__pyrasite_inject":',
+        "        tb = tb.tb_next",
+        "    while tb is not None:",
+        "        code = tb.tb_frame.f_code",
+        "        lines.append(",
+        "            '  File \"%s\", line %d, in %s' %",
+        "            (code.co_filename, tb.tb_lineno, code.co_name))",
+        "        tb = tb.tb_next",
         '    lines.append("%s: %s" % (type(exc).__name__, exc))',
         '    return "\\n".join(lines) + "\\n"',
     ]
     if marker is not None:
         marker_literal = _python_string(marker)
-        lines.extend([
-            '',
-            'def __pyrasite_report(status):',
-            '    try:',
-            '        with open(%s, "w") as marker_file:' % marker_literal,
-            '            marker_file.write(status)',
-            '    except BaseException:',
-            '        pass',
-        ])
-    lines.extend([
-        '',
-        'def __pyrasite_inject():',
-        '    try:',
-        '        exec(compile(open(%s, "rb").read(), %s, "exec"),'
-        ' globals())' % (_python_string(filename), _python_string(filename)),
-        '    except BaseException as exc:',
-        '        try:',
-        '            detail = __pyrasite_traceback(exc)',
-        '        except BaseException:',
-        '            detail = "Payload raised %s\\n" % type(exc).__name__',
-        '        try:',
-        '            sys.stderr.write(detail)',
-        '            sys.stderr.flush()',
-        '        except BaseException:',
-        '            pass',
-    ])
+        lines.extend(
+            [
+                "",
+                "def __pyrasite_report(status):",
+                "    try:",
+                '        with open(%s, "w") as marker_file:' % marker_literal,
+                "            marker_file.write(status)",
+                "    except BaseException:",
+                "        pass",
+            ]
+        )
+    lines.extend(
+        [
+            "",
+            "def __pyrasite_inject():",
+            "    try:",
+            '        exec(compile(open(%s, "rb").read(), %s, "exec"),'
+            " globals())" % (_python_string(filename), _python_string(filename)),
+            "    except BaseException as exc:",
+            "        try:",
+            "            detail = __pyrasite_traceback(exc)",
+            "        except BaseException:",
+            '            detail = "Payload raised %s\\n" % type(exc).__name__',
+            "        try:",
+            "            sys.stderr.write(detail)",
+            "            sys.stderr.flush()",
+            "        except BaseException:",
+            "            pass",
+        ]
+    )
     if marker is not None:
-        lines.extend([
-            '        __pyrasite_report("error\\n" + detail)',
-            '    else:',
-            '        __pyrasite_report("ok")',
-        ])
+        lines.extend(
+            [
+                '        __pyrasite_report("error\\n" + detail)',
+                "    else:",
+                '        __pyrasite_report("ok")',
+            ]
+        )
     if threaded:
-        lines.extend([
-            '',
-            'import threading',
-            'threading.Thread(target=__pyrasite_inject, name="pyrasite",'
-            ' daemon=True).start()',
-        ])
+        lines.extend(
+            [
+                "",
+                "import threading",
+                'threading.Thread(target=__pyrasite_inject, name="pyrasite",'
+                " daemon=True).start()",
+            ]
+        )
     else:
-        lines.append('')
-        lines.append('__pyrasite_inject()')
-    return '\n'.join(lines) + '\n'
+        lines.append("")
+        lines.append("__pyrasite_inject()")
+    return "\n".join(lines) + "\n"
 
 
-def _gdb_base(pid, gdb_prefix=''):
+def _gdb_base(pid, gdb_prefix=""):
     return [
-        (gdb_prefix or '') + 'gdb',
-        '-p', str(pid),
-        '-batch',
-        '-nx',                 # ignore the user's ~/.gdbinit
-        '-eval-command=set pagination off',
-        '-eval-command=set confirm off',
+        (gdb_prefix or "") + "gdb",
+        "-p",
+        str(pid),
+        "-batch",
+        "-nx",  # ignore the user's ~/.gdbinit
+        "-eval-command=set pagination off",
+        "-eval-command=set confirm off",
     ]
 
 
-def build_gdb_argv(pid, filename, gdb_prefix='', method='pending', marker=None):
+def build_gdb_argv(pid, filename, gdb_prefix="", method="pending", marker=None):
     """Build the gdb command line used to inject *filename* into *pid*."""
-    if method not in ('pending', 'direct'):
+    if method not in ("pending", "direct"):
         raise ValueError("unknown injection method: %r" % (method,))
 
     argv = _gdb_base(pid, gdb_prefix=gdb_prefix)
-    code = _c_string(build_code(
-        filename, marker=marker, threaded=(method == 'pending')))
+    code = _c_string(
+        build_code(filename, marker=marker, threaded=(method == "pending"))
+    )
 
-    if method == 'direct':
-        argv.extend([
-            '-eval-command=call (void*) PyGILState_Ensure()',
-            '-eval-command=call (int) PyRun_SimpleString(%s)' % code,
-            '-eval-command=call (void) PyGILState_Release($1)',
-        ])
+    if method == "direct":
+        argv.extend(
+            [
+                "-eval-command=call (void*) PyGILState_Ensure()",
+                "-eval-command=call (int) PyRun_SimpleString(%s)" % code,
+                "-eval-command=call (void) PyGILState_Release($1)",
+            ]
+        )
     else:  # method == 'pending'
         # Py_AddPendingCall takes an int (*)(void *) callback.  PyRun_SimpleString
         # has a compatible calling convention (const char * -> int), so we can
@@ -203,13 +215,15 @@ def build_gdb_argv(pid, filename, gdb_prefix='', method='pending', marker=None):
         # it outlives this gdb invocation.  The caller waits for the marker
         # file (or for the direct call to return) to know when the payload is
         # done.
-        argv.extend([
-            '-eval-command=break PyRun_SimpleString',
-            '-eval-command=call (int) Py_AddPendingCall('
-            '(int (*)(void *)) PyRun_SimpleString, (void *) strdup(%s))' % code,
-            '-eval-command=continue',
-            '-eval-command=detach',
-        ])
+        argv.extend(
+            [
+                "-eval-command=break PyRun_SimpleString",
+                "-eval-command=call (int) Py_AddPendingCall("
+                "(int (*)(void *)) PyRun_SimpleString, (void *) strdup(%s))" % code,
+                "-eval-command=continue",
+                "-eval-command=detach",
+            ]
+        )
 
     return argv
 
@@ -218,38 +232,37 @@ def build_gdb_argv(pid, filename, gdb_prefix='', method='pending', marker=None):
 # interpreter, or call into it.  gdb itself often still exits with status 0 in
 # these cases, so we have to inspect its output as well.
 _GDB_ERROR_MARKERS = (
-    'No such process',
-    'ptrace: ',
-    'No symbol table is loaded',
-    'No symbol ',
-    'Cannot access memory',
-    'Could not attach',
-    'Cannot call functions',
+    "No such process",
+    "ptrace: ",
+    "No symbol table is loaded",
+    "No symbol ",
+    "Cannot access memory",
+    "Could not attach",
+    "Cannot call functions",
 )
 
 
 def _check_result(output, method):
     """Raise if gdb reported that our injection call failed."""
-    if method == 'pending':
-        match = re.search(r'^\$1 = (-?\d+)\s*$', output, re.MULTILINE)
+    if method == "pending":
+        match = re.search(r"^\$1 = (-?\d+)\s*$", output, re.MULTILINE)
         if match and int(match.group(1)) != 0:
-            raise InjectionError(
-                "Py_AddPendingCall failed with %s" % match.group(1))
-    elif method == 'direct':
-        match = re.search(r'^\$2 = (-?\d+)\s*$', output, re.MULTILINE)
+            raise InjectionError("Py_AddPendingCall failed with %s" % match.group(1))
+    elif method == "direct":
+        match = re.search(r"^\$2 = (-?\d+)\s*$", output, re.MULTILINE)
         if match and int(match.group(1)) != 0:
             raise InjectionError(
                 "PyRun_SimpleString failed with %s; the payload may have "
-                "raised an exception (see the target's stderr)" %
-                match.group(1))
+                "raised an exception (see the target's stderr)" % match.group(1)
+            )
 
 
 def _thread_count(pid):
     """Return the number of threads in *pid* on Linux, or None."""
     try:
-        with open('/proc/%d/status' % pid) as status:
+        with open("/proc/%d/status" % pid) as status:
             for line in status:
-                if line.startswith('Threads:'):
+                if line.startswith("Threads:"):
                     return int(line.split()[1])
     except (OSError, ValueError):
         pass
@@ -257,12 +270,12 @@ def _thread_count(pid):
 
 
 def _pending_was_scheduled(output):
-    match = re.search(r'^\$1 = (-?\d+)\s*$', output, re.MULTILINE)
+    match = re.search(r"^\$1 = (-?\d+)\s*$", output, re.MULTILINE)
     return match is not None and int(match.group(1)) == 0
 
 
 def _new_marker():
-    fd, path = tempfile.mkstemp(prefix='pyrasite-', suffix='.status')
+    fd, path = tempfile.mkstemp(prefix="pyrasite-", suffix=".status")
     os.close(fd)
     os.unlink(path)
     return path
@@ -288,8 +301,8 @@ def _wait_for_marker(path, deadline):
 
 
 def _marker_error(status):
-    if status.startswith('error'):
-        detail = status[len('error'):].lstrip('\n')
+    if status.startswith("error"):
+        detail = status[len("error") :].lstrip("\n")
         return "The payload raised an exception:\n%s" % detail
     return None
 
@@ -301,18 +314,25 @@ def _remaining(deadline):
 
 
 def _partial_output(exc):
-    partial = ''
+    partial = ""
     if exc.stdout:
-        partial += (exc.stdout if isinstance(exc.stdout, str)
-                    else exc.stdout.decode('utf-8', 'replace'))
+        partial += (
+            exc.stdout
+            if isinstance(exc.stdout, str)
+            else exc.stdout.decode("utf-8", "replace")
+        )
     if exc.stderr:
-        partial += (exc.stderr if isinstance(exc.stderr, str)
-                    else exc.stderr.decode('utf-8', 'replace'))
+        partial += (
+            exc.stderr
+            if isinstance(exc.stderr, str)
+            else exc.stderr.decode("utf-8", "replace")
+        )
     return partial
 
 
-def inject(pid, filename, verbose=False, gdb_prefix='',
-           timeout=60, fallback=True, method=None):
+def inject(
+    pid, filename, verbose=False, gdb_prefix="", timeout=60, fallback=True, method=None
+):
     """Execute a file in a running Python process.
 
     :param pid: process id of the target interpreter
@@ -334,10 +354,10 @@ def inject(pid, filename, verbose=False, gdb_prefix='',
     filename = os.path.abspath(filename)
     if method is None:
         if _thread_count(pid) == 1:
-            methods = ('direct',)
+            methods = ("direct",)
         else:
-            methods = ('pending', 'direct') if fallback else ('pending',)
-    elif method in ('pending', 'direct'):
+            methods = ("pending", "direct") if fallback else ("pending",)
+    elif method in ("pending", "direct"):
         methods = (method,)
     else:
         raise ValueError("unknown injection method: %r" % (method,))
@@ -345,32 +365,40 @@ def inject(pid, filename, verbose=False, gdb_prefix='',
     deadline = None if timeout is None else time.monotonic() + timeout
     errors = []
 
-    for method in methods:
+    for current_method in methods:
         marker = _new_marker()
         try:
-            argv = build_gdb_argv(pid, filename, gdb_prefix=gdb_prefix,
-                                  method=method, marker=marker)
+            argv = build_gdb_argv(
+                pid,
+                filename,
+                gdb_prefix=gdb_prefix,
+                method=current_method,
+                marker=marker,
+            )
             try:
                 p = subprocess.run(
                     argv,
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.PIPE,
+                    capture_output=True,
                     timeout=_remaining(deadline),
-                    universal_newlines=True,
+                    text=True,
                 )
             except FileNotFoundError:
                 raise InjectionError(
                     "Could not find the gdb executable (%r). Please install "
                     "gdb." % argv[0]
-                )
+                ) from None
             except subprocess.TimeoutExpired as e:
                 partial = _partial_output(e)
-                scheduled = (method == 'pending' and
-                             _pending_was_scheduled(partial))
+                scheduled = current_method == "pending" and _pending_was_scheduled(
+                    partial
+                )
                 errors.append(
-                    "%s method timed out%s" %
-                    (method,
-                     ('\n' + partial.strip()) if partial.strip() else ''))
+                    "%s method timed out%s"
+                    % (
+                        current_method,
+                        ("\n" + partial.strip()) if partial.strip() else "",
+                    )
+                )
 
                 status = _read_marker(marker)
                 if status is None and scheduled:
@@ -378,14 +406,15 @@ def inject(pid, filename, verbose=False, gdb_prefix='',
                 if status is not None:
                     problem = _marker_error(status)
                     if problem:
-                        raise InjectionError(problem)
+                        raise InjectionError(problem) from None
                     return 0
 
                 if scheduled:
                     errors.append(
                         "The payload was queued with Py_AddPendingCall but "
                         "did not finish in time. It may still run later. Use "
-                        "method='direct' for processes blocked in C.")
+                        "method='direct' for processes blocked in C."
+                    )
                     break
                 continue
 
@@ -397,95 +426,98 @@ def inject(pid, filename, verbose=False, gdb_prefix='',
             combined = out + err
             failed = p.returncode != 0
             if not failed:
-                failed = any(marker_text in combined
-                             for marker_text in _GDB_ERROR_MARKERS)
+                failed = any(
+                    marker_text in combined for marker_text in _GDB_ERROR_MARKERS
+                )
             if not failed:
                 try:
-                    _check_result(combined, method)
+                    _check_result(combined, current_method)
                 except InjectionError as e:
                     failed = True
                     errors.append(str(e))
 
             status = _read_marker(marker)
-            scheduled = (method == 'pending' and
-                         _pending_was_scheduled(combined))
+            scheduled = current_method == "pending" and _pending_was_scheduled(combined)
 
-            if method == 'pending' and status is None and scheduled:
+            if current_method == "pending" and status is None and scheduled:
                 status = _wait_for_marker(marker, deadline)
 
             if status is not None:
                 problem = _marker_error(status)
                 if problem:
-                    raise InjectionError(problem)
+                    raise InjectionError(problem) from None
                 # The payload finished successfully. gdb may have failed while
                 # detaching, but the work has been done.
                 return p.returncode if not failed else 0
 
-            if method == 'pending':
+            if current_method == "pending":
                 if scheduled:
                     errors.append(
                         "The payload was queued with Py_AddPendingCall but "
                         "did not report completion in time. It may still run "
                         "later. Use method='direct' for processes blocked in "
-                        "C.")
+                        "C."
+                    )
                     break
                 # Nothing was queued, so trying the direct method is safe.
                 if failed:
                     errors.append(
-                        "gdb exited with %s:\n%s" %
-                        (p.returncode, combined.strip()))
+                        "gdb exited with %s:\n%s" % (p.returncode, combined.strip())
+                    )
                 continue
 
             # The direct method is synchronous, so a missing marker only means
             # the target could not write to /tmp. Trust gdb's result.
             if not failed:
                 return p.returncode
-            errors.append(
-                "gdb exited with %s:\n%s" %
-                (p.returncode, combined.strip()))
+            errors.append("gdb exited with %s:\n%s" % (p.returncode, combined.strip()))
         finally:
-            try:
+            with contextlib.suppress(OSError):
                 os.unlink(marker)
-            except OSError:
-                pass
 
     raise InjectionError(
-        "Failed to inject %s into pid %s:\n%s" %
-        (filename, pid, '\n'.join(errors)))
+        "Failed to inject %s into pid %s:\n%s" % (filename, pid, "\n".join(errors))
+    )
 
 
-if platform.system() == 'Windows':
-    def _inject_win(pid, filename, verbose=False, gdb_prefix='', timeout=60,
-                    fallback=True, method=None):
+if platform.system() == "Windows":
+
+    def _inject_win(
+        pid,
+        filename,
+        verbose=False,
+        gdb_prefix="",
+        timeout=60,
+        fallback=True,
+        method=None,
+    ):
         if not gdb_prefix:
-            gdb_prefix = os.path.join(os.path.dirname(__file__), 'win') + os.sep
+            gdb_prefix = os.path.join(os.path.dirname(__file__), "win") + os.sep
         filename = os.path.abspath(filename)
-        code = build_code(filename).replace('\\', '/')
-        argv = [gdb_prefix + 'inject_python_32.exe', str(pid), code]
+        code = build_code(filename).replace("\\", "/")
+        argv = [gdb_prefix + "inject_python_32.exe", str(pid), code]
         p = subprocess.run(
             argv,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
+            capture_output=True,
             timeout=timeout,
-            universal_newlines=True,
+            text=True,
         )
         # The helper returns 25 when the target is a 64-bit interpreter.
         if p.returncode == 25:
-            argv[0] = gdb_prefix + 'inject_python_64.exe'
+            argv[0] = gdb_prefix + "inject_python_64.exe"
             p = subprocess.run(
                 argv,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
+                capture_output=True,
                 timeout=timeout,
-                universal_newlines=True,
+                text=True,
             )
         if verbose:
             print(p.stdout)
             print(p.stderr)
         if p.returncode != 0:
             raise InjectionError(
-                "Failed to inject %s into pid %s (exit code %s):\n%s" %
-                (filename, pid, p.returncode, (p.stdout + p.stderr).strip())
+                "Failed to inject %s into pid %s (exit code %s):\n%s"
+                % (filename, pid, p.returncode, (p.stdout + p.stderr).strip())
             )
         return p.returncode
 

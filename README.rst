@@ -1,4 +1,4 @@
-.. image:: docs/logo.png
+.. image:: https://raw.githubusercontent.com/lmacken/pyrasite/develop/docs/logo.png
 
 pyrasite
 ========
@@ -6,15 +6,13 @@ pyrasite
 .. image:: https://github.com/lmacken/pyrasite/actions/workflows/ci.yml/badge.svg?branch=develop
    :target: https://github.com/lmacken/pyrasite/actions/workflows/ci.yml
 .. image:: https://img.shields.io/pypi/v/pyrasite?style=flat
-   :target: https://pypi.python.org/pypi/pyrasite
-
-.. split here
+   :target: https://pypi.org/project/pyrasite/
 
 Tools for injecting arbitrary code into running Python processes.
 
 :homepage: https://github.com/lmacken/pyrasite
-:documentation: https://pyrasite.rtfd.org
-:download: https://pypi.python.org/pypi/pyrasite
+:documentation: https://pyrasite.readthedocs.io/
+:download: https://pypi.org/project/pyrasite/
 :source: https://github.com/lmacken/pyrasite
 :issues: https://github.com/lmacken/pyrasite/issues
 
@@ -71,8 +69,10 @@ Testing
 
 ::
 
-    pip install -e ".[test]"
+    pip install -e ".[dev]"
     pytest
+    ruff check .
+    ruff format --check .
 
 To run the suite against every supported interpreter with `uv
 <https://docs.astral.sh/uv/>`_::
@@ -88,9 +88,8 @@ paths before running pytest.
 pyrasite-gui
 ~~~~~~~~~~~~
 
-The graphical interface can be found here: https://github.com/lmacken/pyrasite-gui
-
-.. image:: http://lewk.org/img/pyrasite/pyrasite-info-thumb.png
+The graphical interface is maintained separately at
+https://github.com/lmacken/pyrasite-gui.
 
 Authors
 ~~~~~~~

@@ -8,6 +8,9 @@ docs/_build
 __pycache__
 .tox
 .venv
+.ruff_cache
+.mypy_cache
 .coverage
+.coverage.*
 htmlcov
 .pytest_cache

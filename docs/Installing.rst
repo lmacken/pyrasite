@@ -21,10 +21,8 @@ CPython.
 Installing
 ~~~~~~~~~~
 
-You can download the latest tarballs, RPMs, and debs from `PyPI
-<https://pypi.org/project/pyrasite/>`_. Installing the package specific to
-your distribution is recommended. However, you can also install it with
-``pipx`` or ``pip``::
+Install the latest release from `PyPI <https://pypi.org/project/pyrasite/>`_
+with ``pipx`` or ``pip``::
 
     pipx install pyrasite
 
@@ -32,46 +30,37 @@ The optional memory viewer needs a couple of extra packages::
 
     pip install "pyrasite[memory-viewer]"
 
-.. seealso:: `pyrasite-gui <http://pyrasite.readthedocs.org/en/latest/GUI.html>`_ for instructions on installing the graphical interface
+.. seealso:: The `pyrasite-gui <https://github.com/lmacken/pyrasite-gui>`_
+   project provides a graphical interface, but is maintained separately and
+   is not part of this release.
 
 Additional installation notes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Fedora
+ptrace
 ------
 
-If you're using Fedora 17 or later, you'll need to disable an SELinux boolean to allow ptrace.
+Recent Linux distributions restrict ptrace so that a process may only be
+attached to by its ancestors. If ``/proc/sys/kernel/yama/ptrace_scope`` is
+non-zero, enable attaching globally::
 
-.. code-block:: bash
+    echo 0 | sudo tee /proc/sys/kernel/yama/ptrace_scope
 
-   sudo setsebool -P deny_ptrace=off
-
-Mac OS X
---------
-
-If you don't want to override Apple's default gdb, install the latest version of gdb with a prefix (e.g. gnu)
-
-::
-
-    $ ./configure --program-prefix=gnu
-    $ pyrasite <PID> payloads/reverse_python_shell.py --gdb-prefix="gnu"
-
-Arch Linux
-----------
-
-You can install pyrasite from the `Arch User Repository <https://aur.archlinux.org/packages.php?ID=57604>`_.
-
-Ubuntu
-------
-
-Since version 10.10, Ubuntu ships with a `controversial patch <https://lkml.org/lkml/2010/6/16/421>`_ that restricts the scope of ptrace, which can be disabled by running:
-
-::
-
-    echo 0 > /proc/sys/kernel/yama/ptrace_scope
-
-You can make this change permanent by setting ``ptrace_scope`` to ``0`` in
+To make the change permanent, set ``ptrace_scope`` to ``0`` in
 ``/etc/sysctl.d/10-ptrace.conf``.
 
 Alternatively, a target process can opt in to being traced by calling
 ``prctl(PR_SET_PTRACER, PR_SET_PTRACER_ANY)`` before pyrasite attaches.
+
+On Fedora, SELinux may also need::
+
+    sudo setsebool -P deny_ptrace=off
+
+macOS
+-----
+
+If you don't want to override Apple's default gdb, install the latest version
+of gdb with a prefix (e.g. ``gnu``)::
+
+    ./configure --program-prefix=gnu
+    pyrasite <PID> payloads/reverse_python_shell.py --gdb-prefix="gnu"

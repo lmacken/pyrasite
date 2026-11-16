@@ -19,6 +19,7 @@
 =============================================================
 """
 
+import contextlib
 import os
 import socket
 import sys
@@ -30,10 +31,34 @@ from io import StringIO
 import pyrasite
 
 
+def _connect_socket(host, port):
+    """Return a connected socket to *host*:*port*."""
+    last_error = None
+    for res in socket.getaddrinfo(host, port, socket.AF_UNSPEC, socket.SOCK_STREAM):
+        af, socktype, proto, _canonname, sa = res
+        try:
+            sock = socket.socket(af, socktype, proto)
+            try:
+                sock.connect(sa)
+            except OSError as e:
+                sock.close()
+                last_error = e
+                continue
+        except OSError as e:
+            last_error = e
+            continue
+        return sock
+
+    raise OSError(
+        "pyrasite cannot establish reverse connection to %s:%d (%s)"
+        % (host, port, last_error)
+    )
+
+
 class ReverseConnection(pyrasite.PyrasiteIPC, threading.Thread):
     """A payload that connects to a given host:port and receives commands"""
 
-    host = 'localhost'
+    host = "localhost"
     port = 9001
     reliable = True
 
@@ -52,27 +77,7 @@ class ReverseConnection(pyrasite.PyrasiteIPC, threading.Thread):
         """Called when the host sends us a command"""
 
     def _connect(self):
-        last_error = None
-        for res in socket.getaddrinfo(self.host, self.port,
-                                      socket.AF_UNSPEC, socket.SOCK_STREAM):
-            af, socktype, proto, canonname, sa = res
-            try:
-                sock = socket.socket(af, socktype, proto)
-                try:
-                    sock.connect(sa)
-                except OSError as e:
-                    sock.close()
-                    last_error = e
-                    continue
-            except OSError as e:
-                last_error = e
-                continue
-            self.sock = sock
-            return
-
-        raise OSError(
-            'pyrasite cannot establish reverse connection to %s:%d (%s)' %
-            (self.host, self.port, last_error))
+        self.sock = _connect_socket(self.host, self.port)
 
     def run(self):
         try:
@@ -80,7 +85,7 @@ class ReverseConnection(pyrasite.PyrasiteIPC, threading.Thread):
             self.on_connect()
             while True:
                 cmd = self.recv()
-                if not cmd or cmd.strip() == 'quit':
+                if not cmd or cmd.strip() == "quit":
                     break
                 if not self.on_command(cmd):
                     break
@@ -97,20 +102,18 @@ class ReversePythonConnection(ReverseConnection):
     """
 
     def __init__(self, host=None, port=None):
-        super(ReversePythonConnection, self).__init__(host=host, port=port)
+        super().__init__(host=host, port=port)
         # Keep a persistent namespace so commands can define variables that
         # are still available to later commands.
-        self.namespace = {'__name__': '__pyrasite__'}
+        self.namespace = {"__name__": "__pyrasite__"}
 
     def on_command(self, cmd):
         buffer = StringIO()
         old_stdout, old_stderr = sys.stdout, sys.stderr
         sys.stdout = sys.stderr = buffer
         try:
-            try:
+            with contextlib.suppress(SystemExit):
                 exec(cmd, self.namespace)
-            except SystemExit:
-                pass
             output = buffer.getvalue()
         except BaseException:
             output = buffer.getvalue() + traceback.format_exc()
@@ -142,7 +145,7 @@ class DistantInteractiveConsole(InteractiveConsole):
     def raw_input(self, prompt=""):
         output = self.unset_buffer()
         # payload format: 'prompt' ? '\n' 'output'
-        self.ipc.send('\n'.join((prompt, output)))
+        self.ipc.send("\n".join((prompt, output)))
 
         cmd = self.ipc.recv()
 
@@ -154,11 +157,9 @@ class DistantInteractiveConsole(InteractiveConsole):
 
 
 class ReversePythonShell(pyrasite.PyrasiteIPC, threading.Thread):
-    """A reverse Python shell that behaves like Python interactive interpreter.
+    """A reverse Python shell that behaves like Python interactive interpreter."""
 
-    """
-
-    host = 'localhost'
+    host = "localhost"
     port = 9001
     reliable = True
 
@@ -170,27 +171,7 @@ class ReversePythonShell(pyrasite.PyrasiteIPC, threading.Thread):
         self.port = port or default_port
 
     def _connect(self):
-        last_error = None
-        for res in socket.getaddrinfo(self.host, self.port,
-                                      socket.AF_UNSPEC, socket.SOCK_STREAM):
-            af, socktype, proto, canonname, sa = res
-            try:
-                sock = socket.socket(af, socktype, proto)
-                try:
-                    sock.connect(sa)
-                except OSError as e:
-                    sock.close()
-                    last_error = e
-                    continue
-            except OSError as e:
-                last_error = e
-                continue
-            self.sock = sock
-            return
-
-        raise OSError(
-            'pyrasite cannot establish reverse connection to %s:%d (%s)' %
-            (self.host, self.port, last_error))
+        self.sock = _connect_socket(self.host, self.port)
 
     def run(self):
         try:

@@ -19,7 +19,7 @@ Contents
    CLI
    Shell
    MemoryViewer
-   GUI
    Payloads
    API
    Development
+   Changelog

@@ -28,7 +28,11 @@ def run(cmd):
     The returned output is decoded as UTF-8 (replacing invalid bytes) so
     payloads can concatenate it with regular strings.
     """
-    p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE,
-                         stderr=subprocess.PIPE)
-    out, err = p.communicate()
-    return p, out.decode('utf-8', 'replace'), err.decode('utf-8', 'replace')
+    p = subprocess.run(
+        cmd,
+        shell=True,
+        capture_output=True,
+        encoding="utf-8",
+        errors="replace",
+    )
+    return p, p.stdout, p.stderr

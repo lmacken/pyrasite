@@ -53,13 +53,15 @@ def test_listen(ipc):
 
 def test_create_payload(ipc):
     ipc.listen()
+    ipc.hostname = "example.test"
     payload = ipc.create_payload()
     try:
         assert os.path.exists(payload)
         with open(payload) as code:
             source = code.read()
-        compile(source, payload, 'exec')
-        assert 'port = %d' % ipc.port in source
+        compile(source, payload, "exec")
+        assert "host = %r" % ipc.hostname in source
+        assert "port = %d" % ipc.port in source
     finally:
         os.unlink(payload)
 
@@ -72,20 +74,20 @@ def test_connect(ipc):
 
 def test_cmd(ipc):
     ipc.connect()
-    assert ipc.cmd('print("mu")') == 'mu\n'
+    assert ipc.cmd('print("mu")') == "mu\n"
 
 
 def test_cmd_keeps_namespace(ipc):
     ipc.connect()
-    ipc.cmd('pyrasite_test_value = 41')
-    assert ipc.cmd('print(pyrasite_test_value + 1)') == '42\n'
+    ipc.cmd("pyrasite_test_value = 41")
+    assert ipc.cmd("print(pyrasite_test_value + 1)") == "42\n"
 
 
 def test_unreliable(ipc):
     ipc.reliable = False
     ipc.connect()
     out = ipc.cmd('print("mu")')
-    assert out == 'mu\n', out
+    assert out == "mu\n", out
 
 
 def test_repr(ipc):
@@ -98,7 +100,7 @@ def test_title(ipc):
 
 def test_context_manager(target):
     with pyrasite.PyrasiteIPC(target.pid) as ipc:
-        assert ipc.cmd('print("mu")') == 'mu\n'
+        assert ipc.cmd('print("mu")') == "mu\n"
 
     # The context manager must close the connection.
     with pytest.raises(OSError):

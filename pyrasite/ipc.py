@@ -19,6 +19,7 @@
 =========================================================
 """
 
+import contextlib
 import os
 import platform
 import re
@@ -27,7 +28,6 @@ import stat
 import struct
 import subprocess
 import tempfile
-import traceback
 from os.path import abspath, dirname, join
 
 import pyrasite
@@ -121,8 +121,12 @@ class PyrasiteIPC:
         a reverse subshell and having it connect back to us.
         """
         self.listen()
-        self.inject()
-        self.wait()
+        try:
+            self.inject()
+            self.wait()
+        except BaseException:
+            self.close()
+            raise
 
     def listen(self):
         """Listen on a random port"""
@@ -219,6 +223,8 @@ class PyrasiteIPC:
 
     def send(self, data):
         """Send arbitrary data to the process via self.sock"""
+        if self.sock is None:
+            raise OSError("pyrasite connection is closed")
         if isinstance(data, str):
             data = data.encode("utf-8")
         header = b""
@@ -228,6 +234,8 @@ class PyrasiteIPC:
 
     def recv(self):
         """Receive a command from a given socket"""
+        if self.sock is None:
+            raise OSError("pyrasite connection is closed")
         if self.reliable:
             header_data = self.recv_bytes(4)
             if len(header_data) == 4:
@@ -252,13 +260,12 @@ class PyrasiteIPC:
         return data
 
     def close(self):
-        try:
-            if self.sock:
-                self.sock.close()
-            if getattr(self, "server_sock", None):
-                self.server_sock.close()
-        except OSError:
-            traceback.print_exc()
+        for sock in (self.sock, getattr(self, "server_sock", None)):
+            if sock is not None:
+                with contextlib.suppress(OSError):
+                    sock.close()
+        self.sock = None
+        self.server_sock = None
 
     def __repr__(self):
         return "<%s %s>" % (self.__class__.__name__, self.pid)

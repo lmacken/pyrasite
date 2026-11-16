@@ -1,6 +1,20 @@
 Changelog
 =========
 
+2.2.0 (2026-11-15)
+------------------
+
+- Read payloads in the pyrasite process and embed them in the gdb command, so
+  injection works when the target cannot read the payload file, such as when
+  root attaches to a process owned by another user.
+- Accept ``-`` as the payload to read code from standard input, and support
+  FIFOs and shell process substitution.
+- Report injection failures from ``pyrasite-shell`` and the memory viewer as
+  short errors instead of tracebacks, and close the listening socket when a
+  connection attempt fails.
+- Fail clearly when the memory dump used by ``pyrasite-memory-viewer`` is not
+  created instead of raising ``FileNotFoundError``.
+
 2.1.0 (2026-11-15)
 ------------------
 

@@ -72,14 +72,19 @@ def _python_string(value):
     return repr(value)
 
 
-def build_code(filename, marker=None, threaded=False):
+def build_code(filename, marker=None, threaded=False, source=None):
     """Return the Python source that gdb should execute in the target.
 
-    The payload is executed with ``exec(compile(...))`` rather than
-    ``exec(open(...).read())`` so that tracebacks point at the real file and
-    encoding declarations are honoured.  Both the payload's directory and the
-    pyrasite source tree are added to ``sys.path`` so that payloads can import
-    both their neighbours and pyrasite itself.
+    The payload is read here, in the calling process, and embedded in the gdb
+    command.  The target therefore does not need read access to the payload
+    file, which matters when injecting as root into a process running as
+    another user.  The source is compiled with the original filename so that
+    tracebacks still point at the real file, and encoding declarations are
+    honoured.
+
+    Both the payload's directory and the pyrasite source tree are added to
+    ``sys.path`` so that payloads can import both their neighbours and
+    pyrasite itself.
 
     When *marker* is given the wrapper writes ``ok`` to that file after the
     payload finishes, or ``error`` followed by the traceback if it raises.
@@ -95,6 +100,9 @@ def build_code(filename, marker=None, threaded=False):
     has finished.
     """
     filename = os.path.abspath(filename)
+    if source is None:
+        with open(filename, "rb") as payload_file:
+            source = payload_file.read()
     payload_dir = os.path.dirname(filename)
     package_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
     lines = [
@@ -141,8 +149,8 @@ def build_code(filename, marker=None, threaded=False):
             "",
             "def __pyrasite_inject():",
             "    try:",
-            '        exec(compile(open(%s, "rb").read(), %s, "exec"),'
-            " globals())" % (_python_string(filename), _python_string(filename)),
+            '        exec(compile(%s, %s, "exec"), globals())'
+            % (_python_string(source), _python_string(filename)),
             "    except BaseException as exc:",
             "        try:",
             "            detail = __pyrasite_traceback(exc)",
@@ -494,7 +502,9 @@ if platform.system() == "Windows":
         if not gdb_prefix:
             gdb_prefix = os.path.join(os.path.dirname(__file__), "win") + os.sep
         filename = os.path.abspath(filename)
-        code = build_code(filename).replace("\\", "/")
+        # The helper takes forward-slash paths, but the payload source itself
+        # must not be rewritten.
+        code = build_code(filename.replace("\\", "/"))
         argv = [gdb_prefix + "inject_python_32.exe", str(pid), code]
         p = subprocess.run(
             argv,

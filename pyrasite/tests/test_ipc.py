@@ -111,7 +111,28 @@ def test_wait_timeout(target):
     ipc = pyrasite.PyrasiteIPC(target.pid, timeout=0.1)
     ipc.listen()
     try:
-        with pytest.raises(RuntimeError):
+        with pytest.raises(RuntimeError, match=r"Timed out after 0\.1 seconds"):
             ipc.wait()
     finally:
         ipc.close()
+
+
+def test_connect_closes_listener_on_failure(monkeypatch):
+    ipc = pyrasite.PyrasiteIPC(12345)
+
+    def fail():
+        raise RuntimeError("injection failed")
+
+    monkeypatch.setattr(ipc, "inject", fail)
+    with pytest.raises(RuntimeError, match="injection failed"):
+        ipc.connect()
+    assert ipc.server_sock is None
+    assert ipc.sock is None
+
+
+def test_close_is_idempotent(ipc):
+    ipc.listen()
+    ipc.close()
+    ipc.close()
+    assert ipc.server_sock is None
+    assert ipc.sock is None

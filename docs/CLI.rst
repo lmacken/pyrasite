@@ -16,7 +16,8 @@
       pid                   The ID of the process to inject code into
       payload               The Python script to be executed inside the running
                             process. Can be one of the standard payloads (see
-                            --list-payloads) or a filename.
+                            --list-payloads), a filename, or - to read the
+                            script from stdin.
 
     options:
       -h, --help            show this help message and exit

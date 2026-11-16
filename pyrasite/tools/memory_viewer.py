@@ -82,8 +82,9 @@ class PyrasiteMemoryViewer:
             value = pyrasite.inspect(self.pid, w.obj.max_address)
             if not value:
                 value = (
-                    "Unable to inspect remote object. Make sure you have "
-                    "the python-debuginfo package installed."
+                    "Unable to inspect the remote object. Make sure gdb can "
+                    "attach to the process and that the address is still "
+                    "valid."
                 )
             self.object_output.set_text(value)
 
@@ -162,9 +163,19 @@ def main():
 
     pid = int(sys.argv[1])
     payload = abspath(join(dirname(__file__), "..", "payloads", "dump_memory.py"))
-    pyrasite.inject(pid, payload)
+    try:
+        pyrasite.inject(pid, payload)
+    except pyrasite.injector.InjectionError as exc:
+        sys.stderr.write("Error: %s\n" % exc)
+        sys.exit(1)
 
     filename = os.path.join(tempfile.gettempdir(), "pyrasite-%d-objects.json" % pid)
+    if not os.path.exists(filename):
+        sys.stderr.write(
+            "The dump payload did not create %s.\n"
+            "It requires the meliae package in the target process.\n" % filename
+        )
+        sys.exit(1)
 
     # Work around bug caused by meliae dumping unicode strings:
     # https://bugs.launchpad.net/meliae/+bug/876810

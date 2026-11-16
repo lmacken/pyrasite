@@ -15,7 +15,11 @@
 #
 # Copyright (C) 2013 Red Hat, Inc., Luke Macken <lmacken@redhat.com>
 
+import io
 import os
+import sys
+import threading
+from types import SimpleNamespace
 
 import pytest
 
@@ -99,3 +103,38 @@ def test_injection(target):
 def test_injection_localterm(target, capsys):
     main([str(target.pid), "helloworld.py", "--output", "localterm"])
     assert "Hello World!" in capsys.readouterr().out
+
+
+def test_verbose_output_is_text(target, capsys):
+    main([str(target.pid), "helloworld.py", "--verbose"])
+    out = capsys.readouterr().out
+    assert "b'" not in out
+    assert 'b"' not in out
+
+
+def test_injection_from_stdin(target, monkeypatch):
+    source = b'print("payload from stdin")\n'
+    monkeypatch.setattr(sys, "stdin", SimpleNamespace(buffer=io.BytesIO(source)))
+    main([str(target.pid), "-"])
+    stdout, stderr = stop_program(target)
+    assert "payload from stdin" in stdout, "%s\n%s" % (stdout, stderr)
+
+
+@pytest.mark.skipif(not hasattr(os, "mkfifo"), reason="requires mkfifo")
+def test_injection_from_fifo(target, tmp_path):
+    fifo = tmp_path / "payload.fifo"
+    os.mkfifo(fifo)
+    source = 'print("payload from a fifo")\n'
+
+    def writer():
+        with open(fifo, "w") as payload:
+            payload.write(source)
+
+    thread = threading.Thread(target=writer, daemon=True)
+    thread.start()
+    try:
+        main([str(target.pid), str(fifo)])
+    finally:
+        thread.join(timeout=5)
+    stdout, stderr = stop_program(target)
+    assert "payload from a fifo" in stdout, "%s\n%s" % (stdout, stderr)

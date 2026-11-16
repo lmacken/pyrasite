@@ -16,9 +16,11 @@
 # Copyright (C) 2011-2013 Red Hat, Inc.
 
 import argparse
+import contextlib
 import os
 import subprocess
 import sys
+import tempfile
 
 import pyrasite
 from pyrasite.injector import InjectionError
@@ -104,7 +106,8 @@ def main(argv=None):
         default="",
         help="The Python script to be executed inside the"
         " running process.  Can be one of the standard"
-        " payloads (see --list-payloads) or a filename.",
+        " payloads (see --list-payloads), a filename, or -"
+        " to read the script from stdin.",
     )
     parser.add_argument(
         "-l",
@@ -193,12 +196,31 @@ def main(argv=None):
     except ValueError:
         _fail("Error: The first argument must be a pid", 2)
 
-    filename = expand_payload(args.payload)
-    if not filename:
-        _fail("Error: The second argument must be a filename or a payload name", 4)
-    if not os.path.exists(filename):
-        _fail("Error: Invalid path or file doesn't exist", 3)
+    remove_payload = False
+    if args.payload == "-":
+        # Read the payload from stdin.  A temporary file keeps the rest of the
+        # code unchanged, and build_code() reads it back before injection.
+        fd, filename = tempfile.mkstemp(prefix="pyrasite-", suffix=".py")
+        with os.fdopen(fd, "wb") as tmp:
+            tmp.write(sys.stdin.buffer.read())
+        remove_payload = True
+    else:
+        filename = expand_payload(args.payload)
+        if not filename:
+            _fail("Error: The second argument must be a filename or a payload name", 4)
+        if not os.path.exists(filename):
+            _fail("Error: Invalid path or file doesn't exist", 3)
 
+    try:
+        _run(args, filename, pid)
+    finally:
+        if remove_payload:
+            with contextlib.suppress(OSError):
+                os.unlink(filename)
+
+
+def _run(args, filename, pid):
+    """Inject *filename* into the process described by *args*."""
     ptrace_check()
 
     inject_method = None if args.inject_method == "auto" else args.inject_method

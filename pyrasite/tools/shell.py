@@ -38,7 +38,14 @@ def shell():
     ipc = pyrasite.PyrasiteIPC(
         pid, "ReversePythonShell", timeout=os.getenv("PYRASITE_IPC_TIMEOUT") or 5
     )
-    ipc.connect()
+    try:
+        ipc.connect()
+    except KeyboardInterrupt:
+        print("")
+        sys.exit(130)
+    except Exception as exc:
+        print("Error: %s" % exc, file=sys.stderr)
+        sys.exit(1)
 
     print("Pyrasite Shell %s" % pyrasite.__version__)
     print("Connected to '%s'" % ipc.title)

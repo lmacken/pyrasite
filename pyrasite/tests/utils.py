@@ -106,7 +106,8 @@ def run_program(program, exe=None):
         errors="replace",
     )
     flag = os.path.join(tempfile.gettempdir(), "pyrasite_%d" % p.pid)
-    for _ in range(200):
+    # Interpreter startup can be slow on a loaded CI machine.
+    for _ in range(600):
         if os.path.exists(flag):
             return p
         if p.poll() is not None:

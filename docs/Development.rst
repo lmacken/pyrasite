@@ -15,18 +15,18 @@ Run the test suite with::
 
     pytest
 
-To run it against every supported Python version (3.9 through 3.14), use
+To run it against every supported Python version (3.9 through 3.15), use
 `tox <https://tox.wiki/>`_. The ``tox-uv`` plugin automatically downloads
 missing interpreters with `uv <https://docs.astral.sh/uv/>`_::
 
-    uv python install 3.9 3.10 3.11 3.12 3.13 3.14
+    uv python install 3.9 3.10 3.11 3.12 3.13 3.14 3.15
     tox
 
 To exercise injection from the current interpreter into every installed
 interpreter, set ``PYRASITE_TEST_INTERPRETERS`` to a colon-separated list of
 interpreter paths::
 
-    PYRASITE_TEST_INTERPRETERS=$(for v in 3.9 3.10 3.11 3.12 3.13 3.14; do
+    PYRASITE_TEST_INTERPRETERS=$(for v in 3.9 3.10 3.11 3.12 3.13 3.14 3.15; do
         uv python find "$v"
     done | paste -sd: -) pytest pyrasite/tests/test_code_injection.py
 

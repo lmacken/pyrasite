@@ -13,7 +13,7 @@ Requirements
 Python Compatibility
 ~~~~~~~~~~~~~~~~~~~~
 
-Pyrasite runs on CPython 3.9 through 3.14. Injection works between versions
+Pyrasite runs on CPython 3.9 through 3.15. Injection works between versions
 as well, so you can run Pyrasite under one Python and inject into a process
 running another. Both the pyrasite client and the target process must be
 CPython.

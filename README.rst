@@ -42,7 +42,7 @@ or, for the optional memory viewer::
 Compatibility
 ~~~~~~~~~~~~~
 
-Pyrasite runs on CPython 3.9 through 3.14. Injection works between versions
+Pyrasite runs on CPython 3.9 through 3.15. Injection works between versions
 as well, so you can run Pyrasite under one Python and inject into a process
 running another. Both the pyrasite client and the target process must be
 CPython.
@@ -77,7 +77,7 @@ Testing
 To run the suite against every supported interpreter with `uv
 <https://docs.astral.sh/uv/>`_::
 
-    uv python install 3.9 3.10 3.11 3.12 3.13 3.14
+    uv python install 3.9 3.10 3.11 3.12 3.13 3.14 3.15
     tox
 
 To test injecting from one interpreter into all of the others, set

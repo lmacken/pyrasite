@@ -55,4 +55,25 @@ Releasing
        python -m build
        twine check dist/*
 
-3. Upload with ``twine upload dist/*`` (or use PyPI trusted publishing).
+3. Configure trusted publishing once, if it is not already set up:
+
+   * On PyPI, add a trusted publisher for the project with owner
+     ``lmacken``, repository ``pyrasite``, workflow ``publish.yml``, and
+     environment ``pypi``.
+   * On TestPyPI, add the same publisher with environment ``testpypi``.
+   * In the GitHub repository settings, create environments named ``pypi``
+     and ``testpypi``.
+
+4. Commit, tag, and push the release. Pushing a tag that starts with a digit
+   runs ``.github/workflows/publish.yml`` and publishes to PyPI::
+
+       git tag -a 2.2.0 -m "pyrasite 2.2.0"
+       git push origin develop 2.2.0
+
+   To rehearse first, run the **Publish** workflow manually with
+   ``target: testpypi``.
+
+5. If trusted publishing is not configured yet, upload the distributions from
+   the build in step 2 instead::
+
+       twine upload dist/*

@@ -24,9 +24,33 @@ from types import SimpleNamespace
 import pytest
 
 import pyrasite
-from pyrasite.main import main
+from pyrasite.main import main, ptrace_check
 from pyrasite.tests.utils import generate_program, run_program, stop_program
 from pyrasite.tools.shell import shell
+
+
+def test_ptrace_check_is_silent_for_root(monkeypatch, capsys):
+    monkeypatch.setattr(os, "geteuid", lambda: 0)
+    monkeypatch.setattr(os.path, "exists", lambda path: True)
+
+    def unexpected_open(*args, **kwargs):
+        raise AssertionError("root should not get the ptrace_scope warning")
+
+    monkeypatch.setattr("builtins.open", unexpected_open)
+
+    ptrace_check()
+
+    assert capsys.readouterr().out == ""
+
+
+def test_ptrace_check_warns_for_non_root(monkeypatch, capsys):
+    monkeypatch.setattr(os, "geteuid", lambda: 1000)
+    monkeypatch.setattr(os.path, "exists", lambda path: path.endswith("ptrace_scope"))
+    monkeypatch.setattr("builtins.open", lambda *args, **kwargs: io.StringIO("1"))
+
+    ptrace_check()
+
+    assert "ptrace is restricted (ptrace_scope=1)" in capsys.readouterr().out
 
 
 def test_version_matches_package_metadata():

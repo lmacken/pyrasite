@@ -28,6 +28,10 @@ from pyrasite.injector import InjectionError
 
 def ptrace_check():
     """Warn if the system is configured to disallow ptrace attachments."""
+    if os.geteuid() == 0:
+        # root has CAP_SYS_PTRACE on normal systems, so Yama's ptrace_scope
+        # does not restrict it and the warning would be misleading.
+        return
     ptrace_scope = "/proc/sys/kernel/yama/ptrace_scope"
     if os.path.exists(ptrace_scope):
         with open(ptrace_scope) as f:

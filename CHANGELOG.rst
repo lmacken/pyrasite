@@ -1,6 +1,12 @@
 Changelog
 =========
 
+Unreleased
+----------
+
+- Do not print the Yama ``ptrace_scope`` warning when running as root, since
+  root is not restricted by it.
+
 2.3.0 (2026-11-18)
 ------------------
 

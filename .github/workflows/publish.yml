@@ -56,6 +56,7 @@ jobs:
       - uses: pypa/gh-action-pypi-publish@release/v1
         with:
           skip-existing: ${{ inputs.skip_existing || 'false' }}
+          attestations: true
 
   publish-testpypi:
     name: Publish to TestPyPI
@@ -74,3 +75,4 @@ jobs:
         with:
           repository-url: https://test.pypi.org/legacy/
           skip-existing: ${{ inputs.skip_existing || 'false' }}
+          attestations: true

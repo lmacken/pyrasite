@@ -70,6 +70,10 @@ Releasing
    enabled. The job still performs the OIDC exchange, then skips the files that
    are already on PyPI.
 
+   Releases uploaded by the workflow include PEP 740 provenance attestations,
+   which PyPI displays alongside each file. Files uploaded manually with twine
+   and an API token do not have attestations.
+
 4. Commit, tag, and push the release. Pushing a tag that starts with a digit
    runs ``.github/workflows/publish.yml`` and publishes to PyPI::
 

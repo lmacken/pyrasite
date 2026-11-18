@@ -121,6 +121,28 @@ def test_injection_from_stdin(target, monkeypatch):
     assert "payload from stdin" in stdout, "%s\n%s" % (stdout, stderr)
 
 
+def test_shell_bind_and_connect_host_options(target, monkeypatch, capsys):
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "pyrasite-shell",
+            str(target.pid),
+            "--bind-host",
+            "127.0.0.1",
+            "--connect-host",
+            "127.0.0.1",
+            "--port",
+            "0",
+        ],
+    )
+    monkeypatch.setattr(sys, "stdin", io.StringIO("print('bound ok')\n"))
+
+    shell()
+
+    assert "bound ok" in capsys.readouterr().out
+
+
 def test_shell_command_can_outlast_the_connect_timeout(target, monkeypatch, capsys):
     """A slow command must not hit the connect-back timeout (#51).
 

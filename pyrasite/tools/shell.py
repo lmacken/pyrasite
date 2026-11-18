@@ -15,6 +15,7 @@
 #
 # Copyright (C) 2011-2013 Red Hat, Inc., Luke Macken <lmacken@redhat.com>
 
+import argparse
 import contextlib
 import os
 import sys
@@ -25,18 +26,46 @@ import pyrasite
 def shell():
     """Open a Python shell in a running process"""
 
-    usage = "Usage: pyrasite-shell <PID>"
-    if len(sys.argv) != 2:
-        print(usage)
-        sys.exit(1)
-    try:
-        pid = int(sys.argv[1])
-    except ValueError:
-        print(usage)
-        sys.exit(1)
+    parser = argparse.ArgumentParser(
+        description="Open a Python shell in a running process"
+    )
+    parser.add_argument("pid", type=int, help="PID of the process to attach to")
+    parser.add_argument(
+        "--timeout",
+        type=float,
+        default=os.getenv("PYRASITE_IPC_TIMEOUT") or 5,
+        help="Seconds to wait for the target to connect back",
+    )
+    parser.add_argument(
+        "--bind-host",
+        default="localhost",
+        help="Address to listen on. Binding to a non-loopback address exposes "
+        "an unauthenticated code-execution socket; use it only on a trusted "
+        "network",
+    )
+    parser.add_argument(
+        "--connect-host",
+        default=None,
+        help="Hostname or address the target should connect back to. Defaults "
+        "to the bound address; override this when the target is in another "
+        "container or host",
+    )
+    parser.add_argument(
+        "--port",
+        type=int,
+        default=None,
+        help="Port to listen on. Defaults to an ephemeral port",
+    )
+    args = parser.parse_args()
+    pid = args.pid
 
     ipc = pyrasite.PyrasiteIPC(
-        pid, "ReversePythonShell", timeout=os.getenv("PYRASITE_IPC_TIMEOUT") or 5
+        args.pid,
+        "ReversePythonShell",
+        timeout=args.timeout,
+        bind_host=args.bind_host,
+        connect_host=args.connect_host,
+        port=args.port,
     )
     try:
         ipc.connect()

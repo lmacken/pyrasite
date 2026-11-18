@@ -66,6 +66,29 @@ def test_create_payload(ipc):
         os.unlink(payload)
 
 
+def test_create_payload_uses_connect_host(ipc):
+    ipc.listen()
+    ipc.connect_host = "target.example"
+    payload = ipc.create_payload()
+    try:
+        with open(payload) as code:
+            source = code.read()
+        assert "host = 'target.example'" in source
+    finally:
+        os.unlink(payload)
+
+
+def test_listen_uses_bind_host_and_port():
+    ipc = pyrasite.PyrasiteIPC(12345, bind_host="127.0.0.1", port=0)
+    try:
+        ipc.listen()
+        assert ipc.hostname == "127.0.0.1"
+        assert ipc.port > 0
+        assert ipc.server_sock.getsockname()[:2] == ("127.0.0.1", ipc.port)
+    finally:
+        ipc.close()
+
+
 def test_connect(ipc):
     ipc.connect()
     assert ipc.sock

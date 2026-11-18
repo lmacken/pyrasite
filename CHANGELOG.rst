@@ -1,6 +1,16 @@
 Changelog
 =========
 
+2.3.0 (2026-11-18)
+------------------
+
+- Add ``--bind-host``, ``--connect-host``, and ``--port`` to
+  ``pyrasite-shell``, so the target can connect back from another container or
+  host. The default remains a loopback-only ephemeral port.
+- Document injecting into a remote process over SSH with
+  ``ssh host pyrasite <pid> - < payload.py`` and ``ssh -t host
+  pyrasite-shell <pid>``.
+
 2.2.0 (2026-11-15)
 ------------------
 

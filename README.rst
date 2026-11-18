@@ -78,6 +78,25 @@ so the target does not need read access to the payload file. This also means
 pipes and process substitution work. Standard payloads can be selected by
 name (see ``pyrasite --list-payloads``).
 
+Remote and container use
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+To inject into a process on another host, run pyrasite there over SSH::
+
+    ssh host pyrasite <pid> - < payload.py
+    ssh -t host pyrasite-shell <pid>
+
+When the target is in a different container and must connect back to a
+different address, choose the listening address, the address advertised to
+the target, and optionally a fixed port::
+
+    pyrasite-shell <pid> --bind-host 0.0.0.0 \
+        --connect-host 10.0.0.5 --port 9001
+
+The reverse shell socket has no authentication. Binding it to a non-loopback
+address lets anyone who can reach that address execute code in the target, so
+only do this on a trusted network or through an SSH tunnel.
+
 Testing
 ~~~~~~~
 

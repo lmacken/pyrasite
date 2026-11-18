@@ -72,17 +72,22 @@ class PyrasiteIPC:
         timeout=5,
         inject_timeout=60,
         inject_method=None,
+        bind_host="localhost",
+        connect_host=None,
+        port=None,
     ):
         super().__init__()
         self.pid = pid
         self.sock = None
         self.server_sock = None
         self.hostname = None
-        self.port = None
+        self.port = port
         self.reverse = reverse
         self.timeout = float(timeout)
         self.inject_timeout = inject_timeout
         self.inject_method = inject_method
+        self.bind_host = bind_host
+        self.connect_host = connect_host
 
     def __enter__(self):
         self.connect()
@@ -132,7 +137,7 @@ class PyrasiteIPC:
         """Listen on a random port"""
         self.server_sock = None
         for res in socket.getaddrinfo(
-            "localhost", None, socket.AF_UNSPEC, socket.SOCK_STREAM, 0, 0
+            self.bind_host, self.port, socket.AF_UNSPEC, socket.SOCK_STREAM, 0, 0
         ):
             af, socktype, proto, _canonname, sa = res
             try:
@@ -160,6 +165,7 @@ class PyrasiteIPC:
         """Write out a reverse python connection payload with a custom port"""
         fd, filename = tempfile.mkstemp(prefix="pyrasite-", suffix=".py")
         path = dirname(abspath(pyrasite.__file__))
+        connect_host = self.connect_host or self.hostname
         with os.fdopen(fd, "w") as tmp:
             with open(join(path, "reverse.py")) as payload:
                 for line in payload:
@@ -167,7 +173,7 @@ class PyrasiteIPC:
                         continue
                     line = re.sub(
                         r"host = [\"']localhost[\"']",
-                        "host = %r" % self.hostname,
+                        "host = %r" % connect_host,
                         line,
                     )
                     line = line.replace("port = 9001", "port = %d" % self.port)
